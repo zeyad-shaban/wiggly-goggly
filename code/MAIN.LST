@@ -18,49 +18,49 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
  Line  I  Addr  Code            Source
 
-    1:				; VARS
-    2:		B      00A6	US_RIGHT EQU P2.6
-    3:		B      00A7	US_LEFT EQU P2.7
-    4:
-    5:		B      00A0	LED_RED_L EQU P2.0
-    6:		B      00A1	LED_YELLOW_L EQU P2.1
-    7:		B      00A2	LED_GREEN EQU P2.2
-    8:		B      00A3	LED_YELLOW_R EQU P2.3
-    9:		B      00A4	LED_RED_R EQU P2.4
-   10:
-   11:
-   12:		N      0000	ORG 0000h
-   13:	  0000	02 00 11	LJMP START    ; Jump to start of program
-   14:
-   15:
-   16:				; ------DELAY SUBROUTINES-----
-   17:	  0003			DELAY1US:
-   18:	  0003	7A 02		    MOV R2, #2       ; Outer count for roughly 2 µs
-   19:	  0005			D1:
-   20:	  0005	00		    NOP              ; 1 cycle
-   21:	  0006	00		    NOP              ; 1 cycle
-   22:	  0007	DA FC		    DJNZ R2, D1      ; 2 cycles when decrement ≠ 0, 1 cycle when zero
-   23:	  0009	22		    RET
-   24:
-   25:	  000A			DELAY10US:
-   26:	  000A	7A 0A		    MOV R2, #10
-   27:	  000C			D10:
-   28:	  000C	11 03		    ACALL DELAY1US
-   29:	  000E	DA FC		    DJNZ R2, D10
-   30:	  0010	22		    RET
-   31:
-   32:				;--- Main ---
-   33:	  0011	75 89 00	START:      MOV TMOD, #00h   ; Clear timers
-   34:	  0014	C2 8C		            CLR  TR0         ; ensure timer 0 stops
-   35:	  0016	C2 8D		            CLR  TF0         ; clear overflow flag
-   36:
-   37:				            ; Initialize all LEDs to OFF
-   38:	  0018	75 A0 00	            MOV  P2, #000h   ; Initialize all pins high
-   39:
-   40:	  001B			MAIN_LOOP:
-   41:				    ; 1. Trigger
-   42:	  001B	C2 A6		        CLR  US_RIGHT
-   43:	  001D	11 03		        ACALL DELAY1US
+    1:				;----------------------------------------
+    2:				; Variables / Ports
+    3:				;----------------------------------------
+    4:		B      0091	US_TRIG_R   EQU  P1.1    ; Right Trigger pin
+    5:
+    6:		N      0000	ORG 0000h
+    7:	  0000	02 00 40	LJMP START
+    8:
+    9:				;----------------------------------------
+   10:				; Subroutine: DELAY_10US
+   11:				; Purpose:    ≈10 µs delay (at 11.0592 MHz)
+   12:				;----------------------------------------
+   13:	  0003			DELAY_10US:
+   14:	  0003	00		    NOP       ; 1 µs
+   15:	  0004	00		    NOP
+   16:	  0005	00		    NOP
+   17:	  0006	00		    NOP
+   18:	  0007	00		    NOP
+   19:	  0008	00		    NOP
+   20:	  0009	00		    NOP
+   21:	  000A	00		    NOP
+   22:	  000B	00		    NOP
+   23:	  000C	00		    NOP       ; ≈10 µs total
+   24:	  000D	00		    NOP       ; 1 µs
+   25:	  000E	00		    NOP
+   26:	  000F	00		    NOP
+   27:	  0010	00		    NOP
+   28:	  0011	00		    NOP
+   29:	  0012	00		    NOP
+   30:	  0013	00		    NOP
+   31:	  0014	00		    NOP
+   32:	  0015	00		    NOP
+   33:	  0016	00		    NOP       ; ≈10 µs total
+   34:	  0017	00		    NOP       ; 1 µs
+   35:	  0018	00		    NOP
+   36:	  0019	00		    NOP
+   37:	  001A	00		    NOP
+   38:	  001B	00		    NOP
+   39:	  001C	00		    NOP
+   40:	  001D	00		    NOP
+   41:	  001E	00		    NOP
+   42:	  001F	00		    NOP
+   43:	  0020	00		    NOP       ; ≈10 µs total
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
 
@@ -68,64 +68,53 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
  Line  I  Addr  Code            Source
 
-   44:	  001F	D2 A6		        SETB US_RIGHT
-   45:	  0021	11 0A		        ACALL DELAY10US
-   46:	  0023	C2 A6		        CLR  US_RIGHT
-   47:
-   48:
-   49:				    ; 2. Measure Echo
-   50:	  0025	20 A6 02	WAIT_HIGH:  JB   US_RIGHT, OK_HIGH
-   51:	  0028	80 FB		            SJMP WAIT_HIGH
-   52:	  002A	75 89 01	OK_HIGH:    MOV  TMOD, #01h  ; Timer0 Mode1
-   53:	  002D	C2 8C		            CLR  TR0
-   54:	  002F	C2 8D		            CLR  TF0
-   55:	  0031	75 8C 00	            MOV  TH0, #0     ; Reset timer high byte
-   56:	  0034	75 8A 00	            MOV  TL0, #0     ; Reset timer low byte
-   57:	  0037	D2 8C		            SETB TR0
-   58:
-   59:	  0039	30 A6 02	WAIT_LOW:   JNB  US_RIGHT, OK_LOW
-   60:	  003C	80 FB		            SJMP WAIT_LOW
-   61:	  003E	C2 8C		OK_LOW: CLR TR0
-   62:
-   63:				    ; 3. Compare Timer Value Against 1160 (20cm)
-   64:	  0040	E5 8C		        MOV A, TH0
-   65:	  0042	B4 04 07	        CJNE A, #04h, CHECK_HIGH
-   66:	  0045	E5 8A		        MOV A, TL0
-   67:	  0047	B4 88 07	        CJNE A, #88h, CHECK_LOW
-   68:	  004A	80 10		        SJMP DIST_EQUAL
-   69:
-   70:	  004C	40 08		CHECK_HIGH: JC DIST_LESS
-   71:	  004E	02 00 5A	        JMP DIST_MORE
-   72:
-   73:	  0051	40 03		CHECK_LOW: JC DIST_LESS
-   74:	  0053	02 00 5A	        JMP DIST_MORE
+   44:	  0021	00		    NOP       ; 1 µs
+   45:	  0022	00		    NOP
+   46:	  0023	00		    NOP
+   47:	  0024	00		    NOP
+   48:	  0025	00		    NOP
+   49:	  0026	00		    NOP
+   50:	  0027	00		    NOP
+   51:	  0028	00		    NOP
+   52:	  0029	00		    NOP
+   53:	  002A	00		    NOP       ; ≈10 µs total
+   54:	  002B	00		    NOP       ; 1 µs
+   55:	  002C	00		    NOP
+   56:	  002D	00		    NOP
+   57:	  002E	00		    NOP
+   58:	  002F	00		    NOP
+   59:	  0030	00		    NOP
+   60:	  0031	00		    NOP
+   61:	  0032	00		    NOP
+   62:	  0033	00		    NOP
+   63:	  0034	00		    NOP       ; ≈10 µs total
+   64:	  0035	00		    NOP       ; 1 µs
+   65:	  0036	00		    NOP
+   66:	  0037	00		    NOP
+   67:	  0038	00		    NOP
+   68:	  0039	00		    NOP
+   69:	  003A	00		    NOP
+   70:	  003B	00		    NOP
+   71:	  003C	00		    NOP
+   72:	  003D	00		    NOP
+   73:	  003E	00		    NOP       ; ≈10 µs total
+   74:	  003F	22		    RET
    75:
-   76:	  0056	D2 A4		DIST_LESS: SETB LED_RED_R
-   77:	  0058	80 04		        SJMP NEXT
-   78:
-   79:	  005A	C2 A4		DIST_MORE: CLR LED_RED_R
-   80:	  005C	C2 A4		DIST_EQUAL: CLR LED_RED_R
-   81:
-   82:				;========
-   83:				; THIS NEXT IS JUST DUMMY FOR TESTING PURPOSE, IT SHOULD SET ALL PORT 2 TO ONES INFINITELY IF REACHE
-				D,
-   84:				; THIS DUMMY TEST SHOWS THAT WITH THE CURRENT IMPLEMENTAITON NEXT IS NEVER ACTUALLY REAACHED!!
-   85:	  005E			NEXT:   ; Test section - infinite loop setting P2 to all 1's
-   86:	  005E	75 A0 FF	        MOV P2, #0FFh    ; Set all P2 bits to 1
-   87:	  0061			TEST_LOOP:
-   88:	  0061	80 FE		        SJMP TEST_LOOP   ; Infinite loop
-   89:				;========
-   90:
-   91:				;NEXT:   ; Add logic for other sensors/LEDs
-   92:				;        ACALL DELAY10US
-   93:				;        SJMP MAIN_LOOP
-   94:				;
-   95:				END
-
-
-
-
-ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+   76:
+   77:
+   78:	  0040			START:
+   79:				;----------------------------------------
+   80:				; Main Toggle Loop
+   81:				;----------------------------------------
+   82:	  0040			MAIN_TOGGLE:
+   83:	  0040	D2 91		    SETB    US_TRIG_R    ; Drive P1.1 HIGH
+   84:	  0042	11 03		    ACALL   DELAY_10US   ; Wait ≈10 µs
+   85:	  0044	C2 91		    CLR     US_TRIG_R    ; Drive P1.1 LOW
+   86:	  0046	11 03		    ACALL   DELAY_10US   ; Wait ≈10 µs
+   87:	  0048	80 F6		    SJMP    MAIN_TOGGLE  ; Repeat forever
+   88:
+   89:
+   90:				END
 
 
 
@@ -134,6 +123,11 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
                      register banks used:  ---
 
                      no errors
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
 
 
 
@@ -155,16 +149,8 @@ SYMBOL				  TYPE     VALUE	LINE
 AC				  BIT	      D6
 ACC				  DATA	      E0
 B				  DATA	      F0
-CHECK_HIGH			  CODE	    004C	  70
-CHECK_LOW			  CODE	    0051	  73
 CY				  BIT	      D7
-D1				  CODE	    0005	  19
-D10				  CODE	    000C	  27
-DELAY10US			  CODE	    000A	  25
-DELAY1US			  CODE	    0003	  17
-DIST_EQUAL			  CODE	    005C	  80
-DIST_LESS			  CODE	    0056	  76
-DIST_MORE			  CODE	    005A	  79
+DELAY_10US			  CODE	    0003	  13
 DPH				  DATA	      83
 DPL				  DATA	      82
 EA				  BIT	      AF
@@ -184,15 +170,7 @@ INT1				  BIT	      B3
 IP				  DATA	      B8
 IT0				  BIT	      88
 IT1				  BIT	      8A
-LED_GREEN			  NUMBER    00A2	   7
-LED_RED_L			  NUMBER    00A0	   5
-LED_RED_R			  NUMBER    00A4	   9
-LED_YELLOW_L			  NUMBER    00A1	   6
-LED_YELLOW_R			  NUMBER    00A3	   8
-MAIN_LOOP			  CODE	    001B	  40
-NEXT				  CODE	    005E	  85
-OK_HIGH				  CODE	    002A	  52
-OK_LOW				  CODE	    003E	  61
+MAIN_TOGGLE			  CODE	    0040	  82
 OV				  BIT	      D2
 P				  BIT	      D0
 P0				  DATA	      80
@@ -200,13 +178,6 @@ P1				  DATA	      90
 P2				  DATA	      A0
 P3				  DATA	      B0
 PCON				  DATA	      87
-
-ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
-
-
-
-SYMBOL				  TYPE     VALUE	LINE
-------------------------------------------------------------
 PS				  BIT	      BC
 PSW				  DATA	      D0
 PT0				  BIT	      B9
@@ -223,17 +194,23 @@ RS1				  BIT	      D4
 RXD				  BIT	      B0
 SBUF				  DATA	      99
 SCON				  DATA	      98
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
 SINT				  CODE	    0023
 SM0				  BIT	      9F
 SM1				  BIT	      9E
 SM2				  BIT	      9D
 SP				  DATA	      81
-START				  CODE	    0011	  33
+START				  CODE	    0040	  78
 T0				  BIT	      B4
 T1				  BIT	      B5
 TB8				  BIT	      9B
 TCON				  DATA	      88
-TEST_LOOP			  CODE	    0061	  87
 TF0				  BIT	      8D
 TF1				  BIT	      8F
 TH0				  DATA	      8C
@@ -247,8 +224,5 @@ TMOD				  DATA	      89
 TR0				  BIT	      8C
 TR1				  BIT	      8E
 TXD				  BIT	      B1
-US_LEFT				  NUMBER    00A7	   3
-US_RIGHT			  NUMBER    00A6	   2
-WAIT_HIGH			  CODE	    0025	  50
-WAIT_LOW			  CODE	    0039	  59
+US_TRIG_R			  NUMBER    0091	   4
 WR				  BIT	      B6
