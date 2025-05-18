@@ -24,7 +24,7 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
     4:		B      0091	US_TRIG_R   EQU  P1.1    ; Right Trigger pin
     5:
     6:		N      0000	ORG 0000h
-    7:	  0000	02 00 40	LJMP START
+    7:	  0000	02 00 0E	LJMP START
     8:
     9:				;----------------------------------------
    10:				; Subroutine: DELAY_10US
@@ -41,80 +41,28 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
    21:	  000A	00		    NOP
    22:	  000B	00		    NOP
    23:	  000C	00		    NOP       ; ≈10 µs total
-   24:	  000D	00		    NOP       ; 1 µs
-   25:	  000E	00		    NOP
-   26:	  000F	00		    NOP
-   27:	  0010	00		    NOP
-   28:	  0011	00		    NOP
-   29:	  0012	00		    NOP
-   30:	  0013	00		    NOP
-   31:	  0014	00		    NOP
-   32:	  0015	00		    NOP
-   33:	  0016	00		    NOP       ; ≈10 µs total
-   34:	  0017	00		    NOP       ; 1 µs
-   35:	  0018	00		    NOP
-   36:	  0019	00		    NOP
-   37:	  001A	00		    NOP
-   38:	  001B	00		    NOP
-   39:	  001C	00		    NOP
-   40:	  001D	00		    NOP
-   41:	  001E	00		    NOP
-   42:	  001F	00		    NOP
-   43:	  0020	00		    NOP       ; ≈10 µs total
+   24:	  000D	22		    RET
+   25:
+   26:
+   27:
+   28:	  000E			START:
+   29:				;----------------------------------------
+   30:				; Main Toggle Loop
+   31:				;----------------------------------------
+   32:	  000E			MAIN_TOGGLE:
+   33:	  000E	D2 91		    SETB    US_TRIG_R    ; Drive P1.1 HIGH
+   34:	  0010	11 03		    ACALL   DELAY_10US   ; Wait ≈10 µs
+   35:	  0012	C2 91		    CLR     US_TRIG_R    ; Drive P1.1 LOW
+   36:	  0014	11 03		    ACALL   DELAY_10US   ; Wait ≈10 µs
+   37:	  0016	80 F6		    SJMP    MAIN_TOGGLE  ; Repeat forever
+   38:
+   39:
+   40:				END
+
+
+
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
-
-
-
- Line  I  Addr  Code            Source
-
-   44:	  0021	00		    NOP       ; 1 µs
-   45:	  0022	00		    NOP
-   46:	  0023	00		    NOP
-   47:	  0024	00		    NOP
-   48:	  0025	00		    NOP
-   49:	  0026	00		    NOP
-   50:	  0027	00		    NOP
-   51:	  0028	00		    NOP
-   52:	  0029	00		    NOP
-   53:	  002A	00		    NOP       ; ≈10 µs total
-   54:	  002B	00		    NOP       ; 1 µs
-   55:	  002C	00		    NOP
-   56:	  002D	00		    NOP
-   57:	  002E	00		    NOP
-   58:	  002F	00		    NOP
-   59:	  0030	00		    NOP
-   60:	  0031	00		    NOP
-   61:	  0032	00		    NOP
-   62:	  0033	00		    NOP
-   63:	  0034	00		    NOP       ; ≈10 µs total
-   64:	  0035	00		    NOP       ; 1 µs
-   65:	  0036	00		    NOP
-   66:	  0037	00		    NOP
-   67:	  0038	00		    NOP
-   68:	  0039	00		    NOP
-   69:	  003A	00		    NOP
-   70:	  003B	00		    NOP
-   71:	  003C	00		    NOP
-   72:	  003D	00		    NOP
-   73:	  003E	00		    NOP       ; ≈10 µs total
-   74:	  003F	22		    RET
-   75:
-   76:
-   77:
-   78:	  0040			START:
-   79:				;----------------------------------------
-   80:				; Main Toggle Loop
-   81:				;----------------------------------------
-   82:	  0040			MAIN_TOGGLE:
-   83:	  0040	D2 91		    SETB    US_TRIG_R    ; Drive P1.1 HIGH
-   84:	  0042	11 03		    ACALL   DELAY_10US   ; Wait ≈10 µs
-   85:	  0044	C2 91		    CLR     US_TRIG_R    ; Drive P1.1 LOW
-   86:	  0046	11 03		    ACALL   DELAY_10US   ; Wait ≈10 µs
-   87:	  0048	80 F6		    SJMP    MAIN_TOGGLE  ; Repeat forever
-   88:
-   89:
-   90:				END
 
 
 
@@ -124,15 +72,10 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
                      no errors
 
+
+
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
-
-
-
-
-
-
-ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
 
 
 
@@ -170,7 +113,7 @@ INT1				  BIT	      B3
 IP				  DATA	      B8
 IT0				  BIT	      88
 IT1				  BIT	      8A
-MAIN_TOGGLE			  CODE	    0040	  82
+MAIN_TOGGLE			  CODE	    000E	  32
 OV				  BIT	      D2
 P				  BIT	      D0
 P0				  DATA	      80
@@ -195,7 +138,7 @@ RXD				  BIT	      B0
 SBUF				  DATA	      99
 SCON				  DATA	      98
 
-ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
 
 
 
@@ -206,7 +149,7 @@ SM0				  BIT	      9F
 SM1				  BIT	      9E
 SM2				  BIT	      9D
 SP				  DATA	      81
-START				  CODE	    0040	  78
+START				  CODE	    000E	  28
 T0				  BIT	      B4
 T1				  BIT	      B5
 TB8				  BIT	      9B
