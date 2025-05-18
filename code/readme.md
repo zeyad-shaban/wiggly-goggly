@@ -14,3 +14,11 @@ Distance (cm) = echo (microSec) / 58
 distance * 58 = echo
 
 RED < 10 (yellow) < 20 (green)
+
+
+
+
+Regarind WAIT_FALL_16 philosophy:
+    each loop is 3 µs
+    aiming for 200 cm, 3 * x / 58 = 200
+    x = 200 * 58 / 3 = 3866
