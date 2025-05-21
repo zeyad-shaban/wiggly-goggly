@@ -58,7 +58,6 @@ WAIT_SEND:
 ;=======================
 ; UART Send String
 SEND_STRING:
-    MOV DPTR, #MSG1         ; R0 points to message
 NEXT_CHAR:
      CLR A
     MOVC A, @A+DPTR
@@ -69,9 +68,8 @@ NEXT_CHAR:
 DONE_STRING:
     RET
 
-; Convert R7 to ASCII and send
+; Convert RX to ASCII and send
 SEND_DECIMAL:
-    MOV A, R7
     MOV B, #10
     DIV AB            ; A = tens, B = units
     ADD A, #'0'
@@ -85,7 +83,7 @@ START:
     ; Initialize timer
     MOV     TMOD, #21h    ; Timer0 in Mode 1 (16‑bit)
     CLR     TR0           ; Ensure Timer0 is OFF
-
+    
     ACALL UART_INIT
 
     ;Clear all LEDS
@@ -110,8 +108,8 @@ MAIN_TOGGLE:
 
 
 
-WAIT_ECHO_LOW:
-    JB   US_ECHO_R, WAIT_ECHO_LOW
+WAIT_ECHO_HIGH:
+    JB   US_ECHO_R, WAIT_ECHO_HIGH
     CLR  TF0
     CLR  TR0           ; ensure timer stopped
     ;----------------------------------------
@@ -123,10 +121,10 @@ WAIT_ECHO_LOW:
 MOV   R1, 0Fh    ; high byte = 15
 MOV   R0, 23h    ; low byte = 35 → 15×256 + 35 = 3860
 
-WAIT_RISE:
+WAIT_FALL:
     JB   US_ECHO_R, GOT_ECHO
-    DJNZ  R0, WAIT_RISE   ; decrement low‑byte
-    DJNZ  R1, WAIT_RISE   ; when low‑byte underflows, decrement high‑byte
+    DJNZ  R0, WAIT_FALL   ; decrement low‑byte
+    DJNZ  R1, WAIT_FALL   ; when low‑byte underflows, decrement high‑byte
     SJMP  NO_ECHO
 
 CLR  LED_OUT
@@ -137,9 +135,9 @@ NO_ECHO:
     SJMP MAIN_TOGGLE              ; retrigger immediately
 
 GOT_ECHO:
+    ACALL DELAY_10US
+    ACALL DELAY_10US
     CLR TR0
-    MOV TL0, #00h   ; Clear Timer0 low byte
-    MOV TH0, #00h   ; Clear Timer0 high byte
     ACALL SHOW_DISTANCE
     LJMP END_CHECK
 
@@ -149,22 +147,26 @@ GOT_ECHO:
 ;----------------------------------------
 SHOW_DISTANCE:
     CLR LED_OUT
+    
 
     ; Combine timer value → R1:R0
     MOV A, TL0
     MOV R0, A
     MOV A, TH0
     MOV R1, A
+    MOV A,#00h
 
-        ; Compute distance = (R1:R0) / 58 → store in R7
+    
+
+    ; Compute distance = (R1:R0) / 58 → store in R7
     MOV DPL, R0       ; Load low byte
     MOV DPH, R1       ; Load high byte
     MOV R7, #0        ; Result register = 0
 
 DIV_LOOP:
-    CLR C
+    CLR C 
     MOV A, DPL
-    SUBB A, #058h
+    SUBB A, #3Ah
     MOV DPL, A
     MOV A, DPH
     SUBB A, #00h
@@ -179,10 +181,24 @@ DIV_DONE:
     ACALL SEND_STRING
 
     ; Send decimal digits from R7
+    MOV A,R7
     ACALL SEND_DECIMAL
 
     ; Send " cm\r\n"
     MOV DPTR, #MSG2
+    ACALL SEND_STRING
+
+    ; Send "Timer: "
+    MOV DPTR, #MSG3
+    ACALL SEND_STRING
+
+    MOV A, TH0
+    ACALL SEND_DECIMAL
+    MOV A, TL0
+    ACALL SEND_DECIMAL
+    MOV A,#00h
+
+    MOV DPTR, #SPACE
     ACALL SEND_STRING
 
     ; Clear all LEDs
@@ -265,6 +281,7 @@ SET_LED8:
     SETB LED8  ; >70cm
     RET
 
+
 ;----------------------------------------
 ; Subroutine: CMP16_LT
 ; Purpose: Compare R1:R0 with DPH:DPL
@@ -295,9 +312,13 @@ DONE_LT:
 
 
 END_CHECK:
+    MOV TL0, #00h   ; Clear Timer0 low byte
+    MOV TH0, #00h   ; Clear Timer0 high byte
     LJMP    MAIN_TOGGLE
 
 MSG1: DB 'Distance: ', 0
 MSG2: DB ' cm', 13, 10, 0
+MSG3: DB 'timer: ', 0
+SPACE: DB ' ', 0
 
 END
