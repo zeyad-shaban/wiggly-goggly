@@ -1,0 +1,94 @@
+C51 COMPILER V9.60.7.0   FIND_DISTANCE                                                     05/21/2025 14:11:20 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE FIND_DISTANCE
+OBJECT MODULE PLACED IN .\Objects\find_distance.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE find_distance.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\List
+                    -ings\find_distance.lst) TABS(2) OBJECT(.\Objects\find_distance.obj)
+
+line level    source
+
+   1          /*
+   2            Find distance of an Object by interfacing Ultrasonic HC-SR04 module with 8051(AT89S52)
+   3            http://www.electronicwings.com
+   4          */
+   5          #include<reg52.h>
+   6          #include <stdio.h>
+   7          #include <LCD_8_bit.h>
+   8          #include <math.h>
+   9          
+  10          #define sound_velocity 34300    /* sound velocity in cm per second */
+  11          
+  12          #define period_in_us pow(10,-6)
+  13          #define Clock_period 1.085*period_in_us   /* period for clock cycle of 8051*/
+  14          
+  15          sbit Trigger_pin=P2^6;          /* Trigger pin */
+  16          sbit Echo_pin=P2^7;             /* Echo pin */
+  17          
+  18          void Delay_us()
+  19          {
+  20   1          TL0=0xF5;
+  21   1          TH0=0xFF;
+  22   1          TR0=1;
+  23   1          while (TF0==0);
+  24   1          TR0=0;
+  25   1          TF0=0;
+  26   1      }
+  27          
+  28          void init_timer(){
+  29   1        TMOD=0x01;                    /*initialize Timer*/
+  30   1        TF0=0;
+  31   1        TR0 = 0;
+  32   1      }
+  33          
+  34          void send_trigger_pulse(){
+  35   1          Trigger_pin= 1;             /* pull trigger pin HIGH */
+  36   1          Delay_us();                 /* provide 10uS Delay*/
+  37   1          Trigger_pin = 0;            /* pull trigger pin LOW*/
+  38   1      }
+  39          
+  40          void main()
+  41          {
+  42   1        float distance_measurement, value;
+  43   1        unsigned char distance_in_cm[10];
+  44   1        LCD_Init();                   /* Initialize 16x2 LCD */ 
+  45   1        LCD_String_xy(1,1,"Distance");
+  46   1        init_timer();                 /* Initialize Timer*/
+  47   1        
+  48   1      while(1)
+  49   1      {   
+  50   2          send_trigger_pulse();       /* send trigger pulse of 10us */
+  51   2          
+  52   2          while(!Echo_pin);           /* Waiting for Echo */
+  53   2          TR0 = 1;                    /* Timer Starts */
+  54   2          while(Echo_pin && !TF0);    /* Waiting for Echo goes LOW */
+C51 COMPILER V9.60.7.0   FIND_DISTANCE                                                     05/21/2025 14:11:20 PAGE 2   
+
+  55   2          TR0 = 0;                    /* Stop the timer */
+  56   2          
+  57   2          /* calculate distance using timer */
+  58   2          value = Clock_period * sound_velocity; 
+  59   2          distance_measurement = (TL0|(TH0<<8));                    /* read timer register for time count */
+  60   2          // distance_measurement = (distance_measurement*value)/2.0;  /* find distance(in cm) */
+  61   2        
+  62   2          sprintf(distance_in_cm, "%.2f", distance_measurement);
+  63   2          LCD_String_xy(2,1,distance_in_cm);                        /* show distance on 16x2 LCD */
+  64   2          LCD_String("  cm  ");   
+  65   2                
+  66   2          delay(100);
+  67   2      }
+  68   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    182    ----
+   CONSTANT SIZE    =     21    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      18
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,4 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj" 
+TO ".\Objects\wiggly_goggly" 
+PRINT(".\Listings\wiggly_goggly.m51") RAMSIZE(256) 
