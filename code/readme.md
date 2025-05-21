@@ -2,7 +2,10 @@ using https://plit.de/asem-51/ running in DosBox
 
 # running steps for DOSBox
 1. open DosBox and run following
-    mount C E:\Mazen_Belal\projects\MicroProcessors\wiggly-goggly\code
+    for mazen:
+        mount C E:\Mazen_Belal\projects\MicroProcessors\wiggly-goggly\code
+    for zeyad:
+        mount C E:\workspace\wiggly_goggly\code
     C:
     cd asem5113
     asem.exe ..\main.asm ..\main.hex    
@@ -13,7 +16,7 @@ Project documentation:
 Distance (cm) = echo (microSec) / 58 
 distance * 58 = echo
 
-RED < 10 (yellow) < 20 (green)
+RED < 10 (yellow) < 20 (green)git
 
 
 
