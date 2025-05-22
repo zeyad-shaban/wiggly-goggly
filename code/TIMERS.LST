@@ -1,0 +1,382 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	..\Timers.asm
+	Object File:	..\timers.hex
+	List File:	..\Timers.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				;----------------------------------------------------------
+    2:				; Project: Ultrasonic Echo Timer Measurement
+    3:				; Clock  : 11.0592 MHz
+    4:				; UART   : 9600 baud
+    5:				; UART output = raw TH0/TL0 count of ECHO pulse width
+    6:				;----------------------------------------------------------
+    7:
+    8:		B      0091	US_TRIG_R   EQU  P1.1    ; Right Trigger pin
+    9:		B      0090	US_ECHO_R   EQU  P1.0    ; Right Echo pin
+   10:		B      00A0	LED_FAR_1   EQU  P2.0
+   11:		B      00A4	LED_FAR_2   EQU  P2.4
+   12:		B      00A1	LED_MID_1   EQU  P2.1
+   13:		B      00A3	LED_MID_2   EQU  P2.3
+   14:		B      00A2	LED_CLOSE   EQU  P2.2
+   15:
+   16:		N      0000	ORG 0000h
+   17:	  0000	02 00 67	LJMP START
+   18:
+   19:				;=======================
+   20:				; UART Initialization
+   21:	  0003			UART_INIT:
+   22:	  0003	75 8D FD	    MOV TH1, #0FDH       ; Baud = 9600
+   23:	  0006	75 8B FD	    MOV TL1, #0FDH
+   24:	  0009	75 98 50	    MOV SCON, #50H       ; 8-bit UART, REN enabled
+   25:	  000C	D2 8E		    SETB TR1
+   26:	  000E	22		    RET
+   27:
+   28:				;=======================
+   29:				; UART Send Byte (in A)
+   30:	  000F			UART_SEND:
+   31:	  000F	F5 99		    MOV SBUF, A
+   32:	  0011			WAIT_SEND:
+   33:	  0011	30 99 FD	    JNB TI, WAIT_SEND
+   34:	  0014	C2 99		    CLR TI
+   35:	  0016	22		    RET
+   36:
+   37:				;=======================
+   38:				; SEND_DECIMAL: Converts A to 2-digit ASCII
+   39:	  0017			SEND_DECIMAL:
+   40:	  0017	75 F0 0A	    MOV B, #10
+   41:	  001A	84		    DIV AB
+   42:	  001B	24 30		    ADD A, #'0'
+   43:	  001D	11 0F		    ACALL UART_SEND
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  001F	E5 F0		    MOV A, B
+   45:	  0021	24 30		    ADD A, #'0'
+   46:	  0023	11 0F		    ACALL UART_SEND
+   47:	  0025	22		    RET
+   48:
+   49:				;=======================
+   50:				; SEND_HEX: Send A as 2-digit HEX
+   51:	  0026			SEND_HEX:
+   52:	  0026	C4		    SWAP A                ; High nibble first
+   53:	  0027	54 0F		    ANL A, #0Fh
+   54:	  0029	11 35		    ACALL NIBBLE_TO_ASCII
+   55:	  002B	11 0F		    ACALL UART_SEND
+   56:
+   57:	  002D	ED		    MOV A, R5             ; Restore original
+   58:	  002E	54 0F		    ANL A, #0Fh
+   59:	  0030	11 35		    ACALL NIBBLE_TO_ASCII
+   60:	  0032	11 0F		    ACALL UART_SEND
+   61:	  0034	22		    RET
+   62:
+   63:				; Convert nibble in A to ASCII
+   64:	  0035			NIBBLE_TO_ASCII:
+   65:	  0035	24 30		    ADD A, #'0'
+   66:	  0037	B4 3A 02	    CJNE A, #'9'+1, OK_ASCII
+   67:	  003A	24 07		    ADD A, #7            ; for A-F
+   68:	  003C			OK_ASCII:
+   69:	  003C	22		    RET
+   70:
+   71:				;=======================
+   72:				; Delay ≈ 500 µs
+   73:	  003D			DELAY_500US:
+   74:	  003D	7A 05		    MOV R2, #5
+   75:	  003F	7B 28		L1: MOV R3, #40
+   76:	  0041	00		L2: NOP
+   77:	  0042	DB FD		    DJNZ R3, L2
+   78:	  0044	DA F9		    DJNZ R2, L1
+   79:	  0046	22		    RET
+   80:
+   81:				;=======================
+   82:				; Send 16-bit Timer0 value in HEX
+   83:	  0047			SEND_TIMER0_HEX:
+   84:	  0047	E5 8C		    MOV A, TH0
+   85:	  0049	FD		    MOV R5, A
+   86:	  004A	11 26		    ACALL SEND_HEX
+   87:	  004C	E5 8A		    MOV A, TL0
+   88:	  004E	FD		    MOV R5, A
+   89:	  004F	11 26		    ACALL SEND_HEX
+   90:	  0051	22		    RET
+   91:
+   92:				;=======================
+   93:				; UART Send String in DPTR
+   94:	  0052			SEND_STRING:
+   95:	  0052	E4		    CLR A
+   96:	  0053	93		    MOVC A, @A+DPTR
+   97:	  0054	60 05		    JZ DONE_STRING
+   98:	  0056	11 0F		    ACALL UART_SEND
+   99:	  0058	A3		    INC DPTR
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:	  0059	80 F7		    SJMP SEND_STRING
+  101:	  005B			DONE_STRING:
+  102:	  005B	22		    RET
+  103:
+  104:				;----------------------------------------------------------
+  105:				; Delay ≈10 µs
+  106:	  005C			DELAY_10US:
+  107:	  005C	00		    NOP
+  108:	  005D	00		    NOP
+  109:	  005E	00		    NOP
+  110:	  005F	00		    NOP
+  111:	  0060	00		    NOP
+  112:	  0061	00		    NOP
+  113:	  0062	00		    NOP
+  114:	  0063	00		    NOP
+  115:	  0064	00		    NOP
+  116:	  0065	00		    NOP
+  117:	  0066	22		    RET
+  118:
+  119:				;----------------------------------------------------------
+  120:				; START
+  121:	  0067			START:
+  122:	  0067	75 89 21	    MOV TMOD, #21H       ; Timer1 Mode 2 (for UART), Timer0 Mode 1
+  123:	  006A	C2 8C		    CLR TR0               ; Ensure Timer0 OFF
+  124:				    ; Reset Timer0 for next round
+  125:	  006C	75 8A 00	    MOV TL0, #00h
+  126:	  006F	75 8C 00	    MOV TH0, #00h
+  127:
+  128:	  0072	11 03		    ACALL UART_INIT       ; Initialize UART
+  129:	  0074	C2 A0		    CLR LED_FAR_1
+  130:	  0076	C2 A4		    CLR LED_FAR_2
+  131:	  0078	C2 A1		    CLR LED_MID_1
+  132:	  007A	C2 A3		    CLR LED_MID_2
+  133:	  007C	C2 A2		    CLR LED_CLOSE
+  134:	  007E	C2 91		    CLR US_TRIG_R
+  135:	  0080	C2 90		    CLR US_ECHO_R
+  136:
+  137:				    ;send start string
+  138:	  0082	90 00 CD	    MOV DPTR,#MSG_START
+  139:	  0085	11 52		    ACALL SEND_STRING
+  140:
+  141:	  0087			MAIN_TOGGLE:
+  142:				    ; Send TRIG pulse
+  143:	  0087	D2 91		    SETB US_TRIG_R
+  144:	  0089	11 5C		    ACALL DELAY_10US
+  145:	  008B	C2 91		    CLR  US_TRIG_R
+  146:
+  147:	  008D			WAIT_ECHO_HIGH:
+  148:	  008D	30 90 FD	    JNB   US_ECHO_R, WAIT_ECHO_HIGH
+  149:	  0090	C2 8D		    CLR  TF0
+  150:	  0092	C2 8C		    CLR  TR0
+  151:
+  152:				    ; Start Timer0
+  153:	  0094	D2 8C		    SETB TR0
+  154:
+  155:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+ Line  I  Addr  Code            Source
+
+  156:	  0096			WAIT_RISE:
+  157:	  0096	20 90 0E	    JB   US_ECHO_R, GOT_ECHO
+  158:	  0099	D8 FB		    DJNZ  R0, WAIT_RISE
+  159:	  009B	D9 F9		    DJNZ  R1, WAIT_RISE
+  160:	  009D	80 02		    SJMP  NO_ECHO
+  161:
+  162:	  009F	D2 A2		SETB LED_CLOSE
+  163:
+  164:	  00A1			NO_ECHO:
+  165:	  00A1	C2 8C		    CLR TR0
+  166:	  00A3	C2 A2		    CLR LED_CLOSE
+  167:	  00A5	80 E0		    SJMP MAIN_TOGGLE
+  168:
+  169:	  00A7			GOT_ECHO:
+  170:	  00A7			WAIT_ECHO_LOW:
+  171:	  00A7	20 90 FD	    JB   US_ECHO_R, WAIT_ECHO_LOW
+  172:	  00AA	C2 8D		    CLR  TF0
+  173:	  00AC	C2 8C		    CLR  TR0
+  174:
+  175:				    ; -----------------------------
+  176:				    ; Print "Pulse: " and Timer0
+  177:				    ; -----------------------------
+  178:	  00AE	90 00 C5	    MOV DPTR, #MSG_PULSE
+  179:	  00B1	11 52		    ACALL SEND_STRING
+  180:	  00B3	11 47		    ACALL SEND_TIMER0_HEX
+  181:	  00B5	74 0D		    MOV A, #13
+  182:	  00B7	11 0F		    ACALL UART_SEND
+  183:	  00B9	74 0A		    MOV A, #10
+  184:	  00BB	11 0F		    ACALL UART_SEND
+  185:
+  186:
+  187:				    ; Reset Timer0 for next round
+  188:	  00BD	75 8A 00	    MOV TL0, #00h
+  189:	  00C0	75 8C 00	    MOV TH0, #00h
+  190:
+  191:
+  192:	  00C3	80 C2		    SJMP MAIN_TOGGLE
+  193:
+  194:				;----------------------------------------------------------
+  195:				; Message
+  196:	  00C5	50 75 6C 73	MSG_PULSE: DB "Pulse: ", 0
+	  00C9	65 3A 20 00
+  197:	  00CD	50 72 6F 67	MSG_START: DB "Program Starting",0
+	  00D1	72 61 6D 20
+	  00D5	53 74 61 72
+	  00D9	74 69 6E 67
+	  00DD	00
+  198:
+  199:				END
+
+
+
+
+
+                     register banks used:  ---
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CY				  BIT	      D7
+DELAY_10US			  CODE	    005C	 106
+DELAY_500US			  CODE	    003D	  73
+DONE_STRING			  CODE	    005B	 101
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+GOT_ECHO			  CODE	    00A7	 169
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+L1				  CODE	    003F	  75
+L2				  CODE	    0041	  76
+LED_CLOSE			  NUMBER    00A2	  14
+LED_FAR_1			  NUMBER    00A0	  10
+LED_FAR_2			  NUMBER    00A4	  11
+LED_MID_1			  NUMBER    00A1	  12
+LED_MID_2			  NUMBER    00A3	  13
+MAIN_TOGGLE			  CODE	    0087	 141
+MSG_PULSE			  CODE	    00C5	 196
+MSG_START			  CODE	    00CD	 197
+NIBBLE_TO_ASCII			  CODE	    0035	  64
+NO_ECHO				  CODE	    00A1	 164
+OK_ASCII			  CODE	    003C	  68
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SEND_DECIMAL			  CODE	    0017	  39
+SEND_HEX			  CODE	    0026	  51
+SEND_STRING			  CODE	    0052	  94
+SEND_TIMER0_HEX			  CODE	    0047	  83
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+START				  CODE	    0067	 121
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+UART_INIT			  CODE	    0003	  21
+UART_SEND			  CODE	    000F	  30
+US_ECHO_R			  NUMBER    0090	   9
+US_TRIG_R			  NUMBER    0091	   8
+WAIT_ECHO_HIGH			  CODE	    008D	 147
+WAIT_ECHO_LOW			  CODE	    00A7	 170
+WAIT_RISE			  CODE	    0096	 156
+WAIT_SEND			  CODE	    0011	  32
+WR				  BIT	      B6

@@ -57,19 +57,18 @@ WAIT_SEND:
     
 ;=======================
 ; UART Send String
-SEND_STRING:
-NEXT_CHAR:
+SEND_STRING: ;move msg intp DPTR first
      CLR A
     MOVC A, @A+DPTR
     JZ DONE_STRING
     ACALL UART_SEND
     INC DPTR
-    SJMP NEXT_CHAR
+    SJMP SEND_STRING
 DONE_STRING:
     RET
 
 ; Convert RX to ASCII and send
-SEND_DECIMAL:
+SEND_DECIMAL: ; Move value into A first
     MOV B, #10
     DIV AB            ; A = tens, B = units
     ADD A, #'0'
