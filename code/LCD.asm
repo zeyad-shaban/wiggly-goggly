@@ -1,21 +1,17 @@
 ;----------------------------------------------------------
-; Project: Ultrasonic Echo Timer Measurement with LCD
+; Testing LCD and creating its functions
 ;----------------------------------------------------------
-
-US_TRIG_R   EQU  P1.1
-US_ECHO_R   EQU  P1.0
 
 LCD_RS      EQU  P1.5
 LCD_RW      EQU  P1.6
 LCD_EN      EQU  P1.7
 LCD_DATA    EQU  P3
 
-;----------------------------------------------------------
 ORG 0000h
 LJMP START 
 
 ;=======================
-; LCD ROUTINES
+; LCD SUB_ROUTINES
 ;=======================
 LCD_DELAY:
     MOV R1, #255
@@ -24,7 +20,7 @@ DL2: DJNZ R2, DL2
      DJNZ R1, DL1
      RET
 
-LCD_CMD:
+LCD_CMD: ; to send LCD commands 
     CLR LCD_RS
     CLR LCD_RW
     SETB LCD_EN
@@ -116,22 +112,17 @@ LCD_SEND_HEX:      ;send values to R6 first
     ACALL LCD_DATA_WRITE
     RET
 
-
 ;----------------------------------------------------------
-;  HEX_TO_ASCII  – expects 0-15 in A, returns ‘0’…‘F’ in A
-;                 (uses a ROM look-up so it’s always right)
+;  HEX_TO_ASCII  – expects 0-15 in A, returns ‘0’…‘F’ in A (uses a ROM look-up so it’s always right)
 ;----------------------------------------------------------
 HEX_TO_ASCII:
-        PUSH    DPL             ; keep caller’s DPTR safe
-        PUSH    DPH
-        MOV     DPTR,#HEX_TAB   ; point to table
-        MOVC    A,@A+DPTR       ; fetch the correct character
-        POP     DPH
-        POP     DPL
-        RET
-
-
-
+    PUSH    DPL             ; keep caller’s DPTR safe
+    PUSH    DPH
+    MOV     DPTR,#HEX_TAB   ; point to table
+    MOVC    A,@A+DPTR       ; fetch the correct character
+    POP     DPH
+    POP     DPL
+    RET
 
 ;=======================
 ; Delay ≈ 500 µs
@@ -192,7 +183,7 @@ MAIN_LOOP:
     ACALL LCD_DELAY          ; yields plenty of time (> 1.6 ms)
 
     ; ---------- start over -----------------------------------
-    SJMP  Print
+    SJMP  MAIN_LOOP
 
 ;----------------------------------------------------------
 
