@@ -49,6 +49,7 @@ LCD_INIT:
     ACALL LCD_CMD
     RET
 
+; )NOTE: must move value you wish to print into register DPTR)
 LCD_SEND_STRING:
     CLR A
     MOVC A, @A+DPTR
@@ -61,7 +62,7 @@ LCD_STRING_DONE:
 
 ;----------------------------------------------------------
 ;  LCD_SEND_DECIMAL  – prints an 8-bit value in A (0-255)
-;    • no leading zeros for <100 (prints “7”, “42”, “255”, …)
+; )NOTE: must move value you wish to print into register A)
 ;----------------------------------------------------------
 LCD_SEND_DECIMAL:
     MOV     B,#100          ; 1)  hundreds
