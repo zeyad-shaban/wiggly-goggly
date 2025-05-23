@@ -1,0 +1,544 @@
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 1
+
+
+
+
+
+       MCS-51 Family Macro Assembler   A S E M - 5 1   V 1.3
+       =====================================================
+
+
+
+	Source File:	..\MAZENC1.asm
+	Object File:	..\Mazen.hex
+	List File:	..\MAZENC1.lst
+
+
+
+ Line  I  Addr  Code            Source
+
+    1:				;----------------------------------------
+    2:				; Variables / Ports
+    3:				;----------------------------------------
+    4:		B      0091	US_TRIG_R   EQU  P1.1    ; Right Trigger pin
+    5:		B      0090	US_ECHO_R   EQU  P1.0    ; Right Echo pin
+    6:		B      00A0	LED1    EQU P2.0   ; 0–10 cm
+    7:		B      00A1	LED2    EQU P2.1   ; 10–20 cm
+    8:		B      00A2	LED3    EQU P2.2   ; 20–30 cm
+    9:		B      00A3	LED4    EQU P2.3   ; 30–40 cm
+   10:		B      00A4	LED5    EQU P2.4   ; 40–50 cm
+   11:		B      00A5	LED6    EQU P2.5   ; 50–60 cm
+   12:		B      00A6	LED7    EQU P2.6   ; 60–70 cm
+   13:		B      00A7	LED8    EQU P2.7   ; >70 cm
+   14:		B      0097	LED_OUT EQU P1.7   ; Out of range indicator (e.g., no object detected)
+   15:
+   16:
+   17:
+   18:
+   19:		N      0000	ORG 0000h
+   20:	  0000	02 00 3B	LJMP START
+   21:
+   22:				;----------------------------------------
+   23:				; Subroutine: DELAY_10US
+   24:				; Purpose:    ≈10 µs delay (at 11.0592 MHz)
+   25:				;----------------------------------------
+   26:	  0003			DELAY_10US:
+   27:	  0003	00		    NOP       ; 1 µs
+   28:	  0004	00		    NOP
+   29:	  0005	00		    NOP
+   30:	  0006	00		    NOP
+   31:	  0007	00		    NOP
+   32:	  0008	00		    NOP
+   33:	  0009	00		    NOP
+   34:	  000A	00		    NOP
+   35:	  000B	00		    NOP
+   36:	  000C	00		    NOP       ; ≈10 µs total
+   37:	  000D	22		    RET
+   38:
+   39:
+   40:				;=======================
+   41:				; UART Initialization
+   42:	  000E			UART_INIT:
+   43:	  000E	75 8D FD	    MOV TH1, #0FDh      ; Baud rate 9600 @ 11.0592 MHz
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
+
+
+
+ Line  I  Addr  Code            Source
+
+   44:	  0011	75 8B FD	    MOV TL1, #0FDh
+   45:	  0014	75 98 50	     MOV SCON, #50h      ; 8-bit UART mode, REN enabled
+   46:	  0017	D2 8E		    SETB TR1            ; Start Timer1
+   47:	  0019	22		    RET
+   48:
+   49:				;=======================
+   50:				; UART Send Single Byte
+   51:	  001A			UART_SEND:
+   52:	  001A	F5 99		    MOV SBUF, A
+   53:	  001C			WAIT_SEND:
+   54:	  001C	30 99 FD	    JNB TI, WAIT_SEND
+   55:	  001F	C2 99		    CLR TI
+   56:	  0021	22		    RET
+   57:
+   58:				;=======================
+   59:				; UART Send String
+   60:	  0022			SEND_STRING:
+   61:	  0022			NEXT_CHAR:
+   62:	  0022	E4		     CLR A
+   63:	  0023	93		    MOVC A, @A+DPTR
+   64:	  0024	60 05		    JZ DONE_STRING
+   65:	  0026	11 1A		    ACALL UART_SEND
+   66:	  0028	A3		    INC DPTR
+   67:	  0029	80 F7		    SJMP NEXT_CHAR
+   68:	  002B			DONE_STRING:
+   69:	  002B	22		    RET
+   70:
+   71:				; Convert RX to ASCII and send
+   72:	  002C			SEND_DECIMAL:
+   73:	  002C	75 F0 0A	    MOV B, #10
+   74:	  002F	84		    DIV AB            ; A = tens, B = units
+   75:	  0030	24 30		    ADD A, #'0'
+   76:	  0032	11 1A		    ACALL UART_SEND   ; send tens
+   77:	  0034	E5 F0		    MOV A, B
+   78:	  0036	24 30		    ADD A, #'0'
+   79:	  0038	11 1A		    ACALL UART_SEND   ; send units
+   80:	  003A	22		    RET
+   81:
+   82:	  003B			START:
+   83:				    ; Initialize timer
+   84:	  003B	75 89 21	    MOV     TMOD, #21h    ; Timer0 in Mode 1 (16‑bit)
+   85:	  003E	C2 8C		    CLR     TR0           ; Ensure Timer0 is OFF
+   86:
+   87:	  0040	11 0E		    ACALL UART_INIT
+   88:
+   89:				    ;Clear all LEDS
+   90:	  0042	C2 A0		    CLR LED1
+   91:	  0044	C2 A1		    CLR LED2
+   92:	  0046	C2 A2		    CLR LED3
+   93:	  0048	C2 A3		    CLR LED4
+   94:	  004A	C2 A4		    CLR LED5
+   95:	  004C	C2 A5		    CLR LED6
+   96:	  004E	C2 A6		    CLR LED7
+   97:	  0050	C2 A7		    CLR LED8
+   98:				    ;Clear Trigger/Echo
+   99:	  0052	C2 91		    CLR US_TRIG_R
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
+
+
+
+ Line  I  Addr  Code            Source
+
+  100:	  0054	C2 90		    CLR US_ECHO_R
+  101:
+  102:
+  103:	  0056			MAIN_TOGGLE:
+  104:				    ; Call Trigger
+  105:	  0056	D2 91		    SETB    US_TRIG_R    ; Drive P1.1 HIGH
+  106:	  0058	11 03		    ACALL   DELAY_10US   ; Wait ≈10 µs
+  107:	  005A	C2 91		    CLR     US_TRIG_R    ; Drive P1.1 LOW
+  108:
+  109:
+  110:
+  111:	  005C			WAIT_ECHO_HIGH:
+  112:	  005C	20 90 FD	    JB   US_ECHO_R, WAIT_ECHO_HIGH
+  113:	  005F	C2 8D		    CLR  TF0
+  114:	  0061	C2 8C		    CLR  TR0           ; ensure timer stopped
+  115:				    ;----------------------------------------
+  116:				    ; 2) Start Timer & await rising edge
+  117:				    ;----------------------------------------
+  118:	  0063	D2 8C		    SETB TR0
+  119:
+  120:				; Set up timeout = 11 600 µs / 3 µs ≈ 3867 loops
+  121:	  0065	A9 0F		MOV   R1, 0Fh    ; high byte = 15
+  122:	  0067	A8 23		MOV   R0, 23h    ; low byte = 35 → 15×256 + 35 = 3860
+  123:
+  124:	  0069			WAIT_FALL:
+  125:	  0069	20 90 0E	    JB   US_ECHO_R, GOT_ECHO
+  126:	  006C	D8 FB		    DJNZ  R0, WAIT_FALL   ; decrement low‑byte
+  127:	  006E	D9 F9		    DJNZ  R1, WAIT_FALL   ; when low‑byte underflows, decrement high‑byte
+  128:	  0070	80 02		    SJMP  NO_ECHO
+  129:
+  130:	  0072	C2 97		CLR  LED_OUT
+  131:
+  132:	  0074			NO_ECHO:
+  133:	  0074	C2 8C		    CLR  TR0                      ; ensure timer stopped
+  134:	  0076	D2 97		    SETB  LED_OUT               ; indicate “no reading” or far
+  135:	  0078	80 DC		    SJMP MAIN_TOGGLE              ; retrigger immediately
+  136:
+  137:	  007A			GOT_ECHO:
+  138:	  007A	11 03		    ACALL DELAY_10US
+  139:	  007C	11 03		    ACALL DELAY_10US
+  140:	  007E	C2 8C		    CLR TR0
+  141:	  0080	11 85		    ACALL SHOW_DISTANCE
+  142:	  0082	02 01 4C	    LJMP END_CHECK
+  143:
+  144:				;----------------------------------------
+  145:				; Subroutine: SHOW_DISTANCE
+  146:				; Purpose: Map timer value to 1 of 8 distance LEDs
+  147:				;----------------------------------------
+  148:	  0085			SHOW_DISTANCE:
+  149:	  0085	C2 97		    CLR LED_OUT
+  150:
+  151:
+  152:				    ; Combine timer value → R1:R0
+  153:	  0087	E5 8A		    MOV A, TL0
+  154:	  0089	F8		    MOV R0, A
+  155:	  008A	E5 8C		    MOV A, TH0
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
+
+
+
+ Line  I  Addr  Code            Source
+
+  156:	  008C	F9		    MOV R1, A
+  157:	  008D	74 00		    MOV A,#00h
+  158:
+  159:
+  160:
+  161:				    ; Compute distance = (R1:R0) / 58 → store in R7
+  162:	  008F	88 82		    MOV DPL, R0       ; Load low byte
+  163:	  0091	89 83		    MOV DPH, R1       ; Load high byte
+  164:	  0093	7F 00		    MOV R7, #0        ; Result register = 0
+  165:
+  166:	  0095			DIV_LOOP:
+  167:	  0095	C3		    CLR C
+  168:	  0096	E5 82		    MOV A, DPL
+  169:	  0098	94 3A		    SUBB A, #3Ah
+  170:	  009A	F5 82		    MOV DPL, A
+  171:	  009C	E5 83		    MOV A, DPH
+  172:	  009E	94 00		    SUBB A, #00h
+  173:	  00A0	F5 83		    MOV DPH, A
+  174:	  00A2	40 03		    JC DIV_DONE
+  175:	  00A4	0F		    INC R7
+  176:	  00A5	80 EE		    SJMP DIV_LOOP
+  177:
+  178:	  00A7			DIV_DONE:
+  179:				    ; Send "Distance: "
+  180:	  00A7	90 01 55	    MOV DPTR, #MSG1
+  181:	  00AA	11 22		    ACALL SEND_STRING
+  182:
+  183:				    ; Send decimal digits from R7
+  184:	  00AC	EF		    MOV A,R7
+  185:	  00AD	11 2C		    ACALL SEND_DECIMAL
+  186:
+  187:				    ; Send " cm\r\n"
+  188:	  00AF	90 01 60	    MOV DPTR, #MSG2
+  189:	  00B2	11 22		    ACALL SEND_STRING
+  190:
+  191:				    ; Send "Timer: "
+  192:	  00B4	90 01 66	    MOV DPTR, #MSG3
+  193:	  00B7	11 22		    ACALL SEND_STRING
+  194:
+  195:	  00B9	E5 8C		    MOV A, TH0
+  196:	  00BB	11 2C		    ACALL SEND_DECIMAL
+  197:	  00BD	E5 8A		    MOV A, TL0
+  198:	  00BF	11 2C		    ACALL SEND_DECIMAL
+  199:	  00C1	74 00		    MOV A,#00h
+  200:
+  201:	  00C3	90 01 6E	    MOV DPTR, #SPACE
+  202:	  00C6	11 22		    ACALL SEND_STRING
+  203:
+  204:				    ; Clear all LEDs
+  205:	  00C8	C2 A0		    CLR LED1
+  206:	  00CA	C2 A1		    CLR LED2
+  207:	  00CC	C2 A2		    CLR LED3
+  208:	  00CE	C2 A3		    CLR LED4
+  209:	  00D0	C2 A4		    CLR LED5
+  210:	  00D2	C2 A5		    CLR LED6
+  211:	  00D4	C2 A6		    CLR LED7
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+ Line  I  Addr  Code            Source
+
+  212:	  00D6	C2 A7		    CLR LED8
+  213:
+  214:				    ; ----- Check: R1:R0 < 580 -----
+  215:	  00D8	75 83 02	    MOV DPH, #02h
+  216:	  00DB	75 82 44	    MOV DPL, #044h
+  217:	  00DE	31 38		    ACALL CMP16_LT
+  218:	  00E0	40 3E		    JC SET_LED1
+  219:
+  220:				    ; ----- Check: R1:R0 < 1160 -----
+  221:	  00E2	75 83 04	    MOV DPH, #04h
+  222:	  00E5	75 82 88	    MOV DPL, #088h
+  223:	  00E8	31 38		    ACALL CMP16_LT
+  224:	  00EA	40 37		    JC SET_LED2
+  225:
+  226:				    ; ----- Check: R1:R0 < 1740 -----
+  227:	  00EC	75 83 06	    MOV DPH, #06h
+  228:	  00EF	75 82 CC	    MOV DPL, #0CCh
+  229:	  00F2	31 38		    ACALL CMP16_LT
+  230:	  00F4	40 30		    JC SET_LED3
+  231:
+  232:				    ; ----- Check: R1:R0 < 2320 -----
+  233:	  00F6	75 83 09	    MOV DPH, #09h
+  234:	  00F9	75 82 10	    MOV DPL, #010h
+  235:	  00FC	31 38		    ACALL CMP16_LT
+  236:	  00FE	40 29		    JC SET_LED4
+  237:
+  238:				    ; ----- Check: R1:R0 < 2900 -----
+  239:	  0100	75 83 0B	    MOV DPH, #0Bh
+  240:	  0103	75 82 54	    MOV DPL, #054h
+  241:	  0106	31 38		    ACALL CMP16_LT
+  242:	  0108	40 22		    JC SET_LED5
+  243:
+  244:				    ; ----- Check: R1:R0 < 3480 -----
+  245:	  010A	75 83 0D	    MOV DPH, #0Dh
+  246:	  010D	75 82 98	    MOV DPL, #098h
+  247:	  0110	31 38		    ACALL CMP16_LT
+  248:	  0112	40 1B		    JC SET_LED6
+  249:
+  250:				    ; ----- Check: R1:R0 < 4060 -----
+  251:	  0114	75 83 0F	    MOV DPH, #0Fh
+  252:	  0117	75 82 DC	    MOV DPL, #0DCh
+  253:	  011A	31 38		    ACALL CMP16_LT
+  254:	  011C	40 14		    JC SET_LED7
+  255:
+  256:				    ; Else → LED8
+  257:	  011E	80 15		    SJMP SET_LED8
+  258:
+  259:	  0120			SET_LED1:
+  260:	  0120	D2 A0		    SETB LED1  ; 0–10cm
+  261:	  0122	22		    RET
+  262:	  0123			SET_LED2:
+  263:	  0123	D2 A1		    SETB LED2  ; 10–20cm
+  264:	  0125	22		    RET
+  265:	  0126			SET_LED3:
+  266:	  0126	D2 A2		    SETB LED3  ; 20–30cm
+  267:	  0128	22		    RET
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
+
+
+
+ Line  I  Addr  Code            Source
+
+  268:	  0129			SET_LED4:
+  269:	  0129	D2 A3		    SETB LED4  ; 30–40cm
+  270:	  012B	22		    RET
+  271:	  012C			SET_LED5:
+  272:	  012C	D2 A4		    SETB LED5  ; 40–50cm
+  273:	  012E	22		    RET
+  274:	  012F			SET_LED6:
+  275:	  012F	D2 A5		    SETB LED6  ; 50–60cm
+  276:	  0131	22		    RET
+  277:	  0132			SET_LED7:
+  278:	  0132	D2 A6		    SETB LED7  ; 60–70cm
+  279:	  0134	22		    RET
+  280:	  0135			SET_LED8:
+  281:	  0135	D2 A7		    SETB LED8  ; >70cm
+  282:	  0137	22		    RET
+  283:
+  284:
+  285:				;----------------------------------------
+  286:				; Subroutine: CMP16_LT
+  287:				; Purpose: Compare R1:R0 with DPH:DPL
+  288:				; Returns: CY = 1 if R1:R0 < DPH:DPL
+  289:				;----------------------------------------
+  290:	  0138			CMP16_LT:
+  291:	  0138	E9		    MOV A, R1
+  292:	  0139	C3		    CLR C
+  293:	  013A	95 83		    SUBB A, DPH
+  294:	  013C	60 04		    JZ CHECK_LOW
+  295:	  013E	40 0A		    JC DONE_LT     ; R1 < DPH
+  296:	  0140	80 06		    SJMP DONE_GE   ; R1 > DPH
+  297:
+  298:	  0142			CHECK_LOW:
+  299:	  0142	E8		    MOV A, R0
+  300:	  0143	C3		    CLR C
+  301:	  0144	95 82		    SUBB A, DPL
+  302:	  0146	40 02		    JC DONE_LT     ; R0 < DPL
+  303:
+  304:	  0148			DONE_GE:
+  305:	  0148	C3		    CLR C          ; Greater or equal
+  306:	  0149	22		    RET
+  307:
+  308:	  014A			DONE_LT:
+  309:	  014A	D3		    SETB C         ; Less than
+  310:	  014B	22		    RET
+  311:
+  312:
+  313:
+  314:	  014C			END_CHECK:
+  315:	  014C	75 8A 00	    MOV TL0, #00h   ; Clear Timer0 low byte
+  316:	  014F	75 8C 00	    MOV TH0, #00h   ; Clear Timer0 high byte
+  317:	  0152	02 00 56	    LJMP    MAIN_TOGGLE
+  318:
+  319:	  0155	44 69 73 74	MSG1: DB 'Distance: ', 0
+	  0159	61 6E 63 65
+	  015D	3A 20 00
+  320:	  0160	20 63 6D 0D	MSG2: DB ' cm', 13, 10, 0
+	  0164	0A 00
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
+
+
+
+ Line  I  Addr  Code            Source
+
+  321:	  0166	74 69 6D 65	MSG3: DB 'timer: ', 0
+	  016A	72 3A 20 00
+  322:	  016E	20 00		SPACE: DB ' ', 0
+  323:
+  324:				END
+
+
+
+
+
+                     register banks used:  ---
+
+                     no errors
+
+
+
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 8
+
+
+
+
+
+	       L I S T   O F   S Y M B O L S
+	       =============================
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+??ASEM_51			  NUMBER    8051
+??VERSION			  NUMBER    0130
+AC				  BIT	      D6
+ACC				  DATA	      E0
+B				  DATA	      F0
+CHECK_LOW			  CODE	    0142	 298
+CMP16_LT			  CODE	    0138	 290
+CY				  BIT	      D7
+DELAY_10US			  CODE	    0003	  26
+DIV_DONE			  CODE	    00A7	 178
+DIV_LOOP			  CODE	    0095	 166
+DONE_GE				  CODE	    0148	 304
+DONE_LT				  CODE	    014A	 308
+DONE_STRING			  CODE	    002B	  68
+DPH				  DATA	      83
+DPL				  DATA	      82
+EA				  BIT	      AF
+END_CHECK			  CODE	    014C	 314
+ES				  BIT	      AC
+ET0				  BIT	      A9
+ET1				  BIT	      AB
+EX0				  BIT	      A8
+EX1				  BIT	      AA
+EXTI0				  CODE	    0003
+EXTI1				  CODE	    0013
+F0				  BIT	      D5
+GOT_ECHO			  CODE	    007A	 137
+IE				  DATA	      A8
+IE0				  BIT	      89
+IE1				  BIT	      8B
+INT0				  BIT	      B2
+INT1				  BIT	      B3
+IP				  DATA	      B8
+IT0				  BIT	      88
+IT1				  BIT	      8A
+LED1				  NUMBER    00A0	   6
+LED2				  NUMBER    00A1	   7
+LED3				  NUMBER    00A2	   8
+LED4				  NUMBER    00A3	   9
+LED5				  NUMBER    00A4	  10
+LED6				  NUMBER    00A5	  11
+LED7				  NUMBER    00A6	  12
+LED8				  NUMBER    00A7	  13
+LED_OUT				  NUMBER    0097	  14
+MAIN_TOGGLE			  CODE	    0056	 103
+MSG1				  CODE	    0155	 319
+MSG2				  CODE	    0160	 320
+MSG3				  CODE	    0166	 321
+NEXT_CHAR			  CODE	    0022	  61
+NO_ECHO				  CODE	    0074	 132
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 9
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+OV				  BIT	      D2
+P				  BIT	      D0
+P0				  DATA	      80
+P1				  DATA	      90
+P2				  DATA	      A0
+P3				  DATA	      B0
+PCON				  DATA	      87
+PS				  BIT	      BC
+PSW				  DATA	      D0
+PT0				  BIT	      B9
+PT1				  BIT	      BB
+PX0				  BIT	      B8
+PX1				  BIT	      BA
+RB8				  BIT	      9A
+RD				  BIT	      B7
+REN				  BIT	      9C
+RESET				  CODE	    0000
+RI				  BIT	      98
+RS0				  BIT	      D3
+RS1				  BIT	      D4
+RXD				  BIT	      B0
+SBUF				  DATA	      99
+SCON				  DATA	      98
+SEND_DECIMAL			  CODE	    002C	  72
+SEND_STRING			  CODE	    0022	  60
+SET_LED1			  CODE	    0120	 259
+SET_LED2			  CODE	    0123	 262
+SET_LED3			  CODE	    0126	 265
+SET_LED4			  CODE	    0129	 268
+SET_LED5			  CODE	    012C	 271
+SET_LED6			  CODE	    012F	 274
+SET_LED7			  CODE	    0132	 277
+SET_LED8			  CODE	    0135	 280
+SHOW_DISTANCE			  CODE	    0085	 148
+SINT				  CODE	    0023
+SM0				  BIT	      9F
+SM1				  BIT	      9E
+SM2				  BIT	      9D
+SP				  DATA	      81
+SPACE				  CODE	    016E	 322
+START				  CODE	    003B	  82
+T0				  BIT	      B4
+T1				  BIT	      B5
+TB8				  BIT	      9B
+TCON				  DATA	      88
+TF0				  BIT	      8D
+TF1				  BIT	      8F
+TH0				  DATA	      8C
+TH1				  DATA	      8D
+TI				  BIT	      99
+TIMER0				  CODE	    000B
+TIMER1				  CODE	    001B
+TL0				  DATA	      8A
+TL1				  DATA	      8B
+TMOD				  DATA	      89
+TR0				  BIT	      8C
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 10
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+TR1				  BIT	      8E
+TXD				  BIT	      B1
+UART_INIT			  CODE	    000E	  42
+UART_SEND			  CODE	    001A	  51
+US_ECHO_R			  NUMBER    0090	   5
+US_TRIG_R			  NUMBER    0091	   4
+WAIT_ECHO_HIGH			  CODE	    005C	 111
+WAIT_FALL			  CODE	    0069	 124
+WAIT_SEND			  CODE	    001C	  53
+WR				  BIT	      B6
