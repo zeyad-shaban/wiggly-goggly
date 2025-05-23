@@ -1,4 +1,0 @@
-".\Objects\Timers.obj" 
-TO ".\Objects\GPS_test" 
-PRINT(".\Listings\GPS_test.m51") RAMSIZE(256) 
-CODE( 0X0000-0X1FFF )

@@ -1,0 +1,4 @@
+".\Objects\main.obj" 
+TO ".\Objects\wiggly_goggle" 
+PRINT(".\Listings\wiggly_goggle.m51") RAMSIZE(256) 
+CODE( 0X0000-0X1FFF )

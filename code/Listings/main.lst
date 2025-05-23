@@ -1,10 +1,10 @@
-A51 MACRO ASSEMBLER  TIMERS                                                               05/23/2025 17:18:44 PAGE     1
+A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 17:22:52 PAGE     1
 
 
 MACRO ASSEMBLER A51 V8.2.7.0
-OBJECT MODULE PLACED IN .\Objects\Timers.obj
-ASSEMBLER INVOKED BY: C:\Keil_v5\C51\BIN\A51.EXE Timers.asm SET(SMALL) DEBUG PRINT(.\Listings\Timers.lst) OBJECT(.\Objec
-                      ts\Timers.obj) EP
+OBJECT MODULE PLACED IN .\Objects\main.obj
+ASSEMBLER INVOKED BY: C:\Keil_v5\C51\BIN\A51.EXE main.asm SET(SMALL) DEBUG PRINT(.\Listings\main.lst) OBJECT(.\Objects\m
+                      ain.obj) EP
 
 LOC  OBJ            LINE     SOURCE
 
@@ -65,7 +65,7 @@ LOC  OBJ            LINE     SOURCE
 002B 110F             55         ACALL UART_SEND
                       56     
 002D ED               57         MOV A, R5             ; Restore original
-A51 MACRO ASSEMBLER  TIMERS                                                               05/23/2025 17:18:44 PAGE     2
+A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 17:22:52 PAGE     2
 
 002E 540F             58         ANL A, #0Fh
 0030 1135             59         ACALL NIBBLE_TO_ASCII
@@ -133,7 +133,7 @@ LOC  OBJ            LINE     SOURCE
 0067                 121     START:
 0067 758921          122         MOV TMOD, #21H       ; Timer1 Mode 2 (for UART), Timer0 Mode 1
 006A C28C            123         CLR TR0               ; Ensure Timer0 OFF
-A51 MACRO ASSEMBLER  TIMERS                                                               05/23/2025 17:18:44 PAGE     3
+A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 17:22:52 PAGE     3
 
                      124         ; Reset Timer0 for next round
 006C 758A00          125         MOV TL0, #00h
@@ -201,7 +201,7 @@ LOC  OBJ            LINE     SOURCE
                      187         ; Reset Timer0 for next round
 00BD 758A00          188         MOV TL0, #00h
 00C0 758C00          189         MOV TH0, #00h
-A51 MACRO ASSEMBLER  TIMERS                                                               05/23/2025 17:18:44 PAGE     4
+A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 17:22:52 PAGE     4
 
                      190     
                      191     
@@ -218,7 +218,7 @@ LOC  OBJ            LINE     SOURCE
 00DD 00                      
                      198     
                      199     END
-A51 MACRO ASSEMBLER  TIMERS                                                               05/23/2025 17:18:44 PAGE     5
+A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 17:22:52 PAGE     5
 
 SYMBOL TABLE LISTING
 ------ ----- -------

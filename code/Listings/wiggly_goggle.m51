@@ -1,16 +1,16 @@
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                    05/23/2025  17:18:44  PAGE 1
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                    05/23/2025  17:22:53  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V6.22.4.0, INVOKED BY:
-C:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\Timers.obj TO .\Objects\GPS_test PRINT (.\Listings\GPS_test.m51) RAMSIZE (256) COD
->> E (0X0000-0X1FFF)
+C:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\main.obj TO .\Objects\wiggly_goggle PRINT (.\Listings\wiggly_goggle.m51) RAMSIZE (
+>> 256) CODE (0X0000-0X1FFF)
 
 
 INPUT MODULES INCLUDED:
-  .\Objects\Timers.obj (TIMERS)
+  .\Objects\main.obj (MAIN)
 
 
-LINK MAP OF MODULE:  .\Objects\GPS_test (TIMERS)
+LINK MAP OF MODULE:  .\Objects\wiggly_goggle (MAIN)
 
 
             TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
@@ -24,12 +24,12 @@ LINK MAP OF MODULE:  .\Objects\GPS_test (TIMERS)
 
 
 
-SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (TIMERS)
+SYMBOL TABLE OF MODULE:  .\Objects\wiggly_goggle (MAIN)
 
   VALUE           TYPE          NAME
   ----------------------------------
 
-  -------         MODULE        TIMERS
+  -------         MODULE        MAIN
   D:00F0H         SYMBOL        B
   C:005CH         SYMBOL        DELAY_10US
   C:003DH         SYMBOL        DELAY_500US
@@ -59,7 +59,7 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (TIMERS)
   C:0067H         SYMBOL        START
   B:0088H.5       SYMBOL        TF0
   D:008CH         SYMBOL        TH0
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/23/2025  17:18:44  PAGE 2
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/23/2025  17:22:53  PAGE 2
 
 
   D:008DH         SYMBOL        TH1
@@ -119,7 +119,7 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (TIMERS)
   C:004AH         LINE#         86
   C:004CH         LINE#         87
   C:004EH         LINE#         88
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/23/2025  17:18:44  PAGE 3
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/23/2025  17:22:53  PAGE 3
 
 
   C:004FH         LINE#         89
@@ -179,7 +179,7 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (TIMERS)
   C:00B3H         LINE#         180
   C:00B5H         LINE#         181
   C:00B7H         LINE#         182
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/23/2025  17:18:44  PAGE 4
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/23/2025  17:22:53  PAGE 4
 
 
   C:00B9H         LINE#         183
@@ -187,7 +187,7 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (TIMERS)
   C:00BDH         LINE#         188
   C:00C0H         LINE#         189
   C:00C3H         LINE#         192
-  -------         ENDMOD        TIMERS
+  -------         ENDMOD        MAIN
 
 ******************************************************************************
 * RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00DEH BYTE (10%) *

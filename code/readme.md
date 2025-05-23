@@ -1,3 +1,9 @@
+# MAZEN I SWEAR GIT EXISTS FOR A REASON
+
+# WHY THE HELL DO YOU HAVE A FOLDER FOR PROJECT BACKUPS
+
+# WHY DO WE HAVE 20 RANDOM FILES THERE 
+
 using https://plit.de/asem-51/ running in DosBox
 
 # running steps for DOSBox
