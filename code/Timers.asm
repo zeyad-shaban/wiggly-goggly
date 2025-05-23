@@ -15,85 +15,147 @@ LED4 EQU P2.4; 50cm
 LED5 EQU P2.5; 60cm
 LED6 EQU P2.6; 70cm
 LED7 EQU P2.7; >70cm
+
 LED_OUT EQU P1.3;out of range
+
+LCD_RS      EQU  P1.5
+LCD_RW      EQU  P1.6
+LCD_EN      EQU  P1.7
+LCD_DATA    EQU  P3
 
 
 ORG 0000h
 LJMP START 
 
 ;=======================
-; UART Initialization
-UART_INIT:
-    MOV TH1, #0FDH       ; Baud = 9600
-    MOV TL1, #0FDH
-    MOV SCON, #50H       ; 8-bit UART, REN enabled
-    SETB TR1
-    RET
-
+; LCD SUB_ROUTINES
 ;=======================
-; UART Send Byte (in A)
-UART_SEND:
-    MOV SBUF, A
-WAIT_SEND:
-    JNB TI, WAIT_SEND
-    CLR TI
+
+LCD_DELAY:
+    MOV R1, #255
+DL1: MOV R2, #255
+DL2: DJNZ R2, DL2
+     DJNZ R1, DL1
+     RET
+
+LCD_CMD: ; to send LCD commands 
+    CLR LCD_RS
+    CLR LCD_RW
+    SETB LCD_EN
+    MOV LCD_DATA, A
+    ACALL LCD_DELAY
+    CLR LCD_EN
     RET
 
-;=======================
-; SEND_DECIMAL: Converts A to 2-digit ASCII
-SEND_DECIMAL:
-    MOV B, #10
-    DIV AB
-    ADD A, #'0'
-    ACALL UART_SEND
-    MOV A, B
-    ADD A, #'0'
-    ACALL UART_SEND
+LCD_DATA_WRITE:
+    SETB LCD_RS
+    CLR LCD_RW
+    SETB LCD_EN
+    MOV LCD_DATA, A
+    CLR LCD_EN
     RET
 
-;=======================
-; SEND_HEX: Send A as 2-digit HEX
-SEND_HEX:
-    SWAP A                ; High nibble first
-    ANL A, #0Fh
-    ACALL NIBBLE_TO_ASCII
-    ACALL UART_SEND
-
-    MOV A, R5             ; Restore original
-    ANL A, #0Fh
-    ACALL NIBBLE_TO_ASCII
-    ACALL UART_SEND
+LCD_INIT:
+    MOV A, #38H     ; 8-bit, 2-line
+    ACALL LCD_CMD
+    MOV A, #0EH     ; Display ON, Cursor ON
+    ACALL LCD_CMD
+    MOV A, #01H     ; Clear display
+    ACALL LCD_CMD
+    MOV A, #06H     ; Entry mode
+    ACALL LCD_CMD
     RET
 
-; Convert nibble in A to ASCII
-NIBBLE_TO_ASCII:
-    ADD A, #'0'
-    CJNE A, #'9'+1, OK_ASCII
-    ADD A, #7            ; for A-F
-OK_ASCII:
-    RET
-
-;=======================
-; Send 16-bit Timer0 value in HEX
-SEND_TIMER0_HEX:
-    MOV A, TH0
-    MOV R5, A
-    ACALL SEND_HEX
-    MOV A, TL0
-    MOV R5, A
-    ACALL SEND_HEX
-    RET
-
-;=======================
-; UART Send String in DPTR
-SEND_STRING:
+; )NOTE: must move value you wish to print into register DPTR)
+LCD_SEND_STRING:
     CLR A
     MOVC A, @A+DPTR
-    JZ DONE_STRING
-    ACALL UART_SEND
+    JZ LCD_STRING_DONE
+    ACALL LCD_DATA_WRITE
     INC DPTR
-    SJMP SEND_STRING
-DONE_STRING:
+    SJMP LCD_SEND_STRING
+LCD_STRING_DONE:
+    RET
+
+LCD_CLEAR:
+    MOV   A,#01h             ; Clear-Display command
+    ACALL LCD_CMD            ; sends it
+    ACALL LCD_DELAY          ; yields plenty of time (> 1.6 ms)
+    RET
+
+;----------------------------------------------------------
+;  LCD_SEND_DECIMAL  – prints an 8-bit value in A (0-255)
+; )NOTE: must move value you wish to print into register A)
+;----------------------------------------------------------
+LCD_SEND_DECIMAL:
+    MOV     B,#100          ; 1)  hundreds
+    DIV     AB              ;    A = hundreds, B = 0-99 remainder
+    MOV     R4,A            ;    save hundreds
+    MOV     A,B             ; 2)  tens / ones
+    MOV     B,#10
+    DIV     AB              ;    A = tens, B = ones
+    MOV     R5,A
+    MOV     R6,B
+
+    ; -------- print hundreds if non-zero ---------------
+    MOV     A,R4
+    JZ      SKIP_HUNDREDS
+    ADD     A,#'0'
+    ACALL   LCD_DATA_WRITE
+SKIP_HUNDREDS:
+    ; -------- print tens (always if hundreds shown) ----
+    MOV     A,R5
+    JZ      SKIP_TENS
+    ADD     A,#'0'
+    ACALL   LCD_DATA_WRITE
+    SJMP    PRINT_ONES
+SKIP_TENS:
+    ; if both hundreds and tens were zero, we still need one ‘0’
+    MOV     A,R4
+    JNZ     PRINT_ONES      ; already printed a hundreds digit
+    MOV     A,#'0'          ; value was 0-9, so show a single 0
+    ACALL   LCD_DATA_WRITE
+    SJMP    DONE_DEC
+PRINT_ONES:
+    MOV     A,R6
+    ADD     A,#'0'
+    ACALL   LCD_DATA_WRITE
+DONE_DEC:
+    RET
+
+LCD_SEND_HEX:      ;send values to R6 first
+    MOV B, A
+    SWAP A
+    ANL A, #0Fh
+    ACALL HEX_TO_ASCII
+    ACALL LCD_DATA_WRITE
+
+    MOV A, B
+    ANL A, #0Fh
+    ACALL HEX_TO_ASCII
+    ACALL LCD_DATA_WRITE
+    RET
+
+;----------------------------------------------------------
+;  HEX_TO_ASCII  – expects 0-15 in A, returns ‘0’…‘F’ in A (uses a ROM look-up so it’s always right)
+;----------------------------------------------------------
+HEX_TO_ASCII:
+    PUSH    DPL             ; keep caller’s DPTR safe
+    PUSH    DPH
+    MOV     DPTR,#HEX_TAB   ; point to table
+    MOVC    A,@A+DPTR       ; fetch the correct character
+    POP     DPH
+    POP     DPL
+    RET
+
+;----------------------------------------------------------
+; Delay ≈ 500 µs
+DELAY_500US:
+    MOV R2, #5
+L1: MOV R3, #40
+L2: NOP
+    DJNZ R3, L2
+    DJNZ R2, L1
     RET
 
 ;----------------------------------------------------------
@@ -114,14 +176,13 @@ DELAY_10US:
 ;----------------------------------------------------------
 ; START
 START:
-    MOV TMOD, #21H       ; Timer1 Mode 2 (for UART), Timer0 Mode 1
+    MOV TMOD, #01H       ; Timer1 Mode 2 (for UART), Timer0 Mode 1
     CLR TR0               ; Ensure Timer0 OFF
-    ; Reset Timer0 for next round
-    MOV TL0, #00h
+   
+    MOV TL0, #00h  ; Reset Timer0 for next round
     MOV TH0, #00h
 
-    ACALL UART_INIT       ; Initialize UART
-    CLR LED0
+    CLR LED0 ; make sure all pins are ready
     CLR LED1
     CLR LED2
     CLR LED3
@@ -131,10 +192,18 @@ START:
     CLR LED7
     CLR US_TRIG_R
     CLR US_ECHO_R
+    CLR LCD_RS      
+    CLR LCD_RW      
+    CLR LCD_EN      
+    CLR LCD_DATA   
+
+    ACALL LCD_INIT       ; Initialize LCD
     
     ;send start string
     MOV DPTR,#MSG_START
-    ACALL SEND_STRING
+    ACALL LCD_SEND_STRING
+    ACALL DELAY_500US
+    ACALL LCD_CLEAR
 
 MAIN_TOGGLE:
     ; Send TRIG pulse
@@ -175,15 +244,11 @@ WAIT_ECHO_LOW:
     ; Print "Pulse: " and Timer0
     ; -----------------------------
     MOV DPTR, #MSG_PULSE
-    ACALL SEND_STRING
+    ACALL LCD_SEND_STRING
     MOV A,TH0
-    ACALL SEND_DECIMAL
+    ACALL LCD_SEND_HEX
     MOV A,TL0
-    ACALL SEND_DECIMAL
-    MOV A, #13
-    ACALL UART_SEND
-    MOV A, #10
-    ACALL UART_SEND
+    ACALL LCD_SEND_HEX
 
         ; Calculate pulse duration
     MOV A, TL0       ; Store TL0 in R0
@@ -196,8 +261,8 @@ WAIT_ECHO_LOW:
     MOV DPH, R1
 
     ; Approximate Distance = timer / 53
-    ; Result will be in R2
-    MOV R2, #0        ; Distance result = 0
+    ; Result will be in R7
+    MOV R7, #0        ; Distance result = 0
 
 DIV_LOOP:
     CLR C
@@ -208,32 +273,25 @@ DIV_LOOP:
     SUBB A, #00
     MOV DPH, A
     JC DIV_DONE       ; Stop if DPH:DPL < 53
-    INC R2
+    INC R7
     SJMP DIV_LOOP
 
 DIV_DONE:
+    ; ---- move cursor to start of line 2 ------------------
+    MOV  A,#0C0h              ; DDRAM addr 40 → line 2, col 0
+    ACALL LCD_CMD
+
     ; Display Distance (in cm)
     MOV DPTR, #MSG_DISTANCE
-    ACALL SEND_STRING
-    MOV A, R2
-    ACALL SEND_DECIMAL
-    MOV A, #13
-    ACALL UART_SEND
-    MOV A, #10
-    ACALL UART_SEND
+    ACALL LCD_SEND_STRING
+    MOV A, R7
+    ACALL LCD_SEND_DECIMAL
 
         ; ----- Clear all LEDs (P2.0 to P2.7) -----
-    CLR LED0
-    CLR LED1
-    CLR LED2
-    CLR LED3
-    CLR LED4
-    CLR LED5
-    CLR LED6
-    CLR LED7
+    MOV P2,#0h
 
     ; ----- Light LEDs based on distance in R2 -----
-    MOV A, R2
+    MOV A, R7
 
     CJNE A, #10, CHECK_20
     SETB LED0
@@ -279,14 +337,15 @@ DONE_LEDS:
     ; Reset Timer0 for next round
     MOV TL0, #00h
     MOV TH0, #00h
-
-
+    
+    ACALL LCD_CLEAR
     LJMP MAIN_TOGGLE
 
 ;---------------------Rom Message------------------------------------
 MSG_PULSE: DB "Pulse: ", 0
 MSG_START: DB "Program Starting",0
 MSG_DISTANCE: DB "Distance: ", 0
+HEX_TAB: DB  "0123456789ABCDEF" ; 16-byte table
 
 
 END

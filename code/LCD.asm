@@ -49,7 +49,7 @@ LCD_INIT:
     ACALL LCD_CMD
     RET
 
-; )NOTE: must move value you wish to print into register DPTR)
+; )NOTE: must move value you wish to print into register DPR)
 LCD_SEND_STRING:
     CLR A
     MOVC A, @A+DPTR

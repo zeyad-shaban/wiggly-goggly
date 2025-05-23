@@ -35,32 +35,32 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
    15:		B      00A5	LED5 EQU P2.5; 60cm
    16:		B      00A6	LED6 EQU P2.6; 70cm
    17:		B      00A7	LED7 EQU P2.7; >70cm
-   18:		B      0093	LED_OUT EQU P1.3;out of range
-   19:
+   18:
+   19:		B      0093	LED_OUT EQU P1.3;out of range
    20:
-   21:		N      0000	ORG 0000h
-   22:	  0000	02 00 5D	LJMP START
-   23:
-   24:				;=======================
-   25:				; UART Initialization
-   26:	  0003			UART_INIT:
-   27:	  0003	75 8D FD	    MOV TH1, #0FDH       ; Baud = 9600
-   28:	  0006	75 8B FD	    MOV TL1, #0FDH
-   29:	  0009	75 98 50	    MOV SCON, #50H       ; 8-bit UART, REN enabled
-   30:	  000C	D2 8E		    SETB TR1
-   31:	  000E	22		    RET
-   32:
-   33:				;=======================
-   34:				; UART Send Byte (in A)
-   35:	  000F			UART_SEND:
-   36:	  000F	F5 99		    MOV SBUF, A
-   37:	  0011			WAIT_SEND:
-   38:	  0011	30 99 FD	    JNB TI, WAIT_SEND
-   39:	  0014	C2 99		    CLR TI
-   40:	  0016	22		    RET
-   41:
-   42:				;=======================
-   43:				; SEND_DECIMAL: Converts A to 2-digit ASCII
+   21:		B      0095	LCD_RS      EQU  P1.5
+   22:		B      0096	LCD_RW      EQU  P1.6
+   23:		B      0097	LCD_EN      EQU  P1.7
+   24:		D      00B0	LCD_DATA    EQU  P3
+   25:
+   26:
+   27:		N      0000	ORG 0000h
+   28:	  0000	02 00 A7	LJMP START
+   29:
+   30:				;=======================
+   31:				; LCD SUB_ROUTINES
+   32:				;=======================
+   33:
+   34:	  0003			LCD_DELAY:
+   35:	  0003	79 FF		    MOV R1, #255
+   36:	  0005	7A FF		DL1: MOV R2, #255
+   37:	  0007	DA FE		DL2: DJNZ R2, DL2
+   38:	  0009	D9 FA		     DJNZ R1, DL1
+   39:	  000B	22		     RET
+   40:
+   41:	  000C			LCD_CMD: ; to send LCD commands
+   42:	  000C	C2 95		    CLR LCD_RS
+   43:	  000E	C2 96		    CLR LCD_RW
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 2
 
@@ -68,62 +68,62 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
  Line  I  Addr  Code            Source
 
-   44:	  0017			SEND_DECIMAL:
-   45:	  0017	75 F0 0A	    MOV B, #10
-   46:	  001A	84		    DIV AB
-   47:	  001B	24 30		    ADD A, #'0'
-   48:	  001D	11 0F		    ACALL UART_SEND
-   49:	  001F	E5 F0		    MOV A, B
-   50:	  0021	24 30		    ADD A, #'0'
-   51:	  0023	11 0F		    ACALL UART_SEND
-   52:	  0025	22		    RET
-   53:
-   54:				;=======================
-   55:				; SEND_HEX: Send A as 2-digit HEX
-   56:	  0026			SEND_HEX:
-   57:	  0026	C4		    SWAP A                ; High nibble first
-   58:	  0027	54 0F		    ANL A, #0Fh
-   59:	  0029	11 35		    ACALL NIBBLE_TO_ASCII
-   60:	  002B	11 0F		    ACALL UART_SEND
-   61:
-   62:	  002D	ED		    MOV A, R5             ; Restore original
-   63:	  002E	54 0F		    ANL A, #0Fh
-   64:	  0030	11 35		    ACALL NIBBLE_TO_ASCII
-   65:	  0032	11 0F		    ACALL UART_SEND
-   66:	  0034	22		    RET
-   67:
-   68:				; Convert nibble in A to ASCII
-   69:	  0035			NIBBLE_TO_ASCII:
-   70:	  0035	24 30		    ADD A, #'0'
-   71:	  0037	B4 3A 02	    CJNE A, #'9'+1, OK_ASCII
-   72:	  003A	24 07		    ADD A, #7            ; for A-F
-   73:	  003C			OK_ASCII:
-   74:	  003C	22		    RET
-   75:
-   76:				;=======================
-   77:				; Send 16-bit Timer0 value in HEX
-   78:	  003D			SEND_TIMER0_HEX:
-   79:	  003D	E5 8C		    MOV A, TH0
-   80:	  003F	FD		    MOV R5, A
-   81:	  0040	11 26		    ACALL SEND_HEX
-   82:	  0042	E5 8A		    MOV A, TL0
-   83:	  0044	FD		    MOV R5, A
-   84:	  0045	11 26		    ACALL SEND_HEX
-   85:	  0047	22		    RET
-   86:
-   87:				;=======================
-   88:				; UART Send String in DPTR
-   89:	  0048			SEND_STRING:
-   90:	  0048	E4		    CLR A
-   91:	  0049	93		    MOVC A, @A+DPTR
-   92:	  004A	60 05		    JZ DONE_STRING
-   93:	  004C	11 0F		    ACALL UART_SEND
-   94:	  004E	A3		    INC DPTR
-   95:	  004F	80 F7		    SJMP SEND_STRING
-   96:	  0051			DONE_STRING:
-   97:	  0051	22		    RET
-   98:
-   99:				;----------------------------------------------------------
+   44:	  0010	D2 97		    SETB LCD_EN
+   45:	  0012	F5 B0		    MOV LCD_DATA, A
+   46:	  0014	11 03		    ACALL LCD_DELAY
+   47:	  0016	C2 97		    CLR LCD_EN
+   48:	  0018	22		    RET
+   49:
+   50:	  0019			LCD_DATA_WRITE:
+   51:	  0019	D2 95		    SETB LCD_RS
+   52:	  001B	C2 96		    CLR LCD_RW
+   53:	  001D	D2 97		    SETB LCD_EN
+   54:	  001F	F5 B0		    MOV LCD_DATA, A
+   55:	  0021	C2 97		    CLR LCD_EN
+   56:	  0023	22		    RET
+   57:
+   58:	  0024			LCD_INIT:
+   59:	  0024	74 38		    MOV A, #38H     ; 8-bit, 2-line
+   60:	  0026	11 0C		    ACALL LCD_CMD
+   61:	  0028	74 0E		    MOV A, #0EH     ; Display ON, Cursor ON
+   62:	  002A	11 0C		    ACALL LCD_CMD
+   63:	  002C	74 01		    MOV A, #01H     ; Clear display
+   64:	  002E	11 0C		    ACALL LCD_CMD
+   65:	  0030	74 06		    MOV A, #06H     ; Entry mode
+   66:	  0032	11 0C		    ACALL LCD_CMD
+   67:	  0034	22		    RET
+   68:
+   69:				; )NOTE: must move value you wish to print into register DPTR)
+   70:	  0035			LCD_SEND_STRING:
+   71:	  0035	E4		    CLR A
+   72:	  0036	93		    MOVC A, @A+DPTR
+   73:	  0037	60 05		    JZ LCD_STRING_DONE
+   74:	  0039	11 19		    ACALL LCD_DATA_WRITE
+   75:	  003B	A3		    INC DPTR
+   76:	  003C	80 F7		    SJMP LCD_SEND_STRING
+   77:	  003E			LCD_STRING_DONE:
+   78:	  003E	22		    RET
+   79:
+   80:	  003F			LCD_CLEAR:
+   81:	  003F	74 01		    MOV   A,#01h             ; Clear-Display command
+   82:	  0041	11 0C		    ACALL LCD_CMD            ; sends it
+   83:	  0043	11 03		    ACALL LCD_DELAY          ; yields plenty of time (> 1.6 ms)
+   84:	  0045	22		    RET
+   85:
+   86:				;----------------------------------------------------------
+   87:				;  LCD_SEND_DECIMAL  – prints an 8-bit value in A (0-255)
+   88:				; )NOTE: must move value you wish to print into register A)
+   89:				;----------------------------------------------------------
+   90:	  0046			LCD_SEND_DECIMAL:
+   91:	  0046	75 F0 64	    MOV     B,#100          ; 1)  hundreds
+   92:	  0049	84		    DIV     AB              ;    A = hundreds, B = 0-99 remainder
+   93:	  004A	FC		    MOV     R4,A            ;    save hundreds
+   94:	  004B	E5 F0		    MOV     A,B             ; 2)  tens / ones
+   95:	  004D	75 F0 0A	    MOV     B,#10
+   96:	  0050	84		    DIV     AB              ;    A = tens, B = ones
+   97:	  0051	FD		    MOV     R5,A
+   98:	  0052	AE F0		    MOV     R6,B
+   99:
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
 
@@ -131,62 +131,62 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
  Line  I  Addr  Code            Source
 
-  100:				; Delay ≈10 µs
-  101:	  0052			DELAY_10US:
-  102:	  0052	00		    NOP
-  103:	  0053	00		    NOP
-  104:	  0054	00		    NOP
-  105:	  0055	00		    NOP
-  106:	  0056	00		    NOP
-  107:	  0057	00		    NOP
-  108:	  0058	00		    NOP
-  109:	  0059	00		    NOP
-  110:	  005A	00		    NOP
-  111:	  005B	00		    NOP
-  112:	  005C	22		    RET
-  113:
-  114:				;----------------------------------------------------------
-  115:				; START
-  116:	  005D			START:
-  117:	  005D	75 89 21	    MOV TMOD, #21H       ; Timer1 Mode 2 (for UART), Timer0 Mode 1
-  118:	  0060	C2 8C		    CLR TR0               ; Ensure Timer0 OFF
-  119:				    ; Reset Timer0 for next round
-  120:	  0062	75 8A 00	    MOV TL0, #00h
-  121:	  0065	75 8C 00	    MOV TH0, #00h
-  122:
-  123:	  0068	11 03		    ACALL UART_INIT       ; Initialize UART
-  124:	  006A	C2 A0		    CLR LED0
-  125:	  006C	C2 A1		    CLR LED1
-  126:	  006E	C2 A2		    CLR LED2
-  127:	  0070	C2 A3		    CLR LED3
-  128:	  0072	C2 A4		    CLR LED4
-  129:	  0074	C2 A5		    CLR LED5
-  130:	  0076	C2 A6		    CLR LED6
-  131:	  0078	C2 A7		    CLR LED7
-  132:	  007A	C2 91		    CLR US_TRIG_R
-  133:	  007C	C2 90		    CLR US_ECHO_R
-  134:
-  135:				    ;send start string
-  136:	  007E	90 01 49	    MOV DPTR,#MSG_START
-  137:	  0081	11 48		    ACALL SEND_STRING
+  100:				    ; -------- print hundreds if non-zero ---------------
+  101:	  0054	EC		    MOV     A,R4
+  102:	  0055	60 04		    JZ      SKIP_HUNDREDS
+  103:	  0057	24 30		    ADD     A,#'0'
+  104:	  0059	11 19		    ACALL   LCD_DATA_WRITE
+  105:	  005B			SKIP_HUNDREDS:
+  106:				    ; -------- print tens (always if hundreds shown) ----
+  107:	  005B	ED		    MOV     A,R5
+  108:	  005C	60 06		    JZ      SKIP_TENS
+  109:	  005E	24 30		    ADD     A,#'0'
+  110:	  0060	11 19		    ACALL   LCD_DATA_WRITE
+  111:	  0062	80 09		    SJMP    PRINT_ONES
+  112:	  0064			SKIP_TENS:
+  113:				    ; if both hundreds and tens were zero, we still need one ‘0’
+  114:	  0064	EC		    MOV     A,R4
+  115:	  0065	70 06		    JNZ     PRINT_ONES      ; already printed a hundreds digit
+  116:	  0067	74 30		    MOV     A,#'0'          ; value was 0-9, so show a single 0
+  117:	  0069	11 19		    ACALL   LCD_DATA_WRITE
+  118:	  006B	80 05		    SJMP    DONE_DEC
+  119:	  006D			PRINT_ONES:
+  120:	  006D	EE		    MOV     A,R6
+  121:	  006E	24 30		    ADD     A,#'0'
+  122:	  0070	11 19		    ACALL   LCD_DATA_WRITE
+  123:	  0072			DONE_DEC:
+  124:	  0072	22		    RET
+  125:
+  126:	  0073			LCD_SEND_HEX:      ;send values to R6 first
+  127:	  0073	F5 F0		    MOV B, A
+  128:	  0075	C4		    SWAP A
+  129:	  0076	54 0F		    ANL A, #0Fh
+  130:	  0078	11 85		    ACALL HEX_TO_ASCII
+  131:	  007A	11 19		    ACALL LCD_DATA_WRITE
+  132:
+  133:	  007C	E5 F0		    MOV A, B
+  134:	  007E	54 0F		    ANL A, #0Fh
+  135:	  0080	11 85		    ACALL HEX_TO_ASCII
+  136:	  0082	11 19		    ACALL LCD_DATA_WRITE
+  137:	  0084	22		    RET
   138:
-  139:	  0083			MAIN_TOGGLE:
-  140:				    ; Send TRIG pulse
-  141:	  0083	D2 91		    SETB US_TRIG_R
-  142:	  0085	11 52		    ACALL DELAY_10US
-  143:	  0087	C2 91		    CLR  US_TRIG_R
-  144:
-  145:	  0089			WAIT_ECHO_HIGH: ; also this was JB and that was waiting for echo low which doesnt make any sense
-  146:	  0089	30 90 FD	    JNB   US_ECHO_R, WAIT_ECHO_HIGH
-  147:	  008C	C2 8D		    CLR  TF0
-  148:	  008E	C2 8C		    CLR  TR0
-  149:
-  150:				    ; Start Timer0
-  151:	  0090	D2 8C		    SETB TR0
-  152:
-  153:
-  154:	  0092			WAIT_RISE:
-  155:	  0092	20 90 0E	    JB   US_ECHO_R, GOT_ECHO
+  139:				;----------------------------------------------------------
+  140:				;  HEX_TO_ASCII  – expects 0-15 in A, returns ‘0’…‘F’ in A (uses a ROM look-up so it’s
+				 always right)
+  141:				;----------------------------------------------------------
+  142:	  0085			HEX_TO_ASCII:
+  143:	  0085	C0 82		    PUSH    DPL             ; keep caller’s DPTR safe
+  144:	  0087	C0 83		    PUSH    DPH
+  145:	  0089	90 01 A4	    MOV     DPTR,#HEX_TAB   ; point to table
+  146:	  008C	93		    MOVC    A,@A+DPTR       ; fetch the correct character
+  147:	  008D	D0 83		    POP     DPH
+  148:	  008F	D0 82		    POP     DPL
+  149:	  0091	22		    RET
+  150:
+  151:				;----------------------------------------------------------
+  152:				; Delay ≈ 500 µs
+  153:	  0092			DELAY_500US:
+  154:	  0092	7A 05		    MOV R2, #5
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
 
@@ -194,62 +194,62 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
  Line  I  Addr  Code            Source
 
-  156:	  0095	D8 FB		    DJNZ  R0, WAIT_RISE
-  157:	  0097	D9 F9		    DJNZ  R1, WAIT_RISE
-  158:	  0099	80 02		    SJMP  NO_ECHO
-  159:
-  160:	  009B	C2 93		CLR LED_OUT
-  161:
-  162:	  009D			NO_ECHO:
-  163:	  009D	C2 8C		    CLR TR0
-  164:	  009F	D2 93		    SETB LED_OUT
-  165:	  00A1	80 E0		    SJMP MAIN_TOGGLE
-  166:
-  167:	  00A3			GOT_ECHO:
-  168:				;i can belive this fixed everything
-  169:	  00A3			WAIT_ECHO_LOW:
-  170:	  00A3	20 90 FD	    JB   US_ECHO_R, WAIT_ECHO_LOW
-  171:	  00A6	C2 8D		    CLR  TF0
-  172:	  00A8	C2 8C		    CLR  TR0
-  173:
-  174:				    ; -----------------------------
-  175:				    ; Print "Pulse: " and Timer0
-  176:				    ; -----------------------------
-  177:	  00AA	90 01 41	    MOV DPTR, #MSG_PULSE
-  178:	  00AD	11 48		    ACALL SEND_STRING
-  179:	  00AF	E5 8C		    MOV A,TH0
-  180:	  00B1	11 17		    ACALL SEND_DECIMAL
-  181:	  00B3	E5 8A		    MOV A,TL0
-  182:	  00B5	11 17		    ACALL SEND_DECIMAL
-  183:	  00B7	74 0D		    MOV A, #13
-  184:	  00B9	11 0F		    ACALL UART_SEND
-  185:	  00BB	74 0A		    MOV A, #10
-  186:	  00BD	11 0F		    ACALL UART_SEND
-  187:
-  188:				        ; Calculate pulse duration
-  189:	  00BF	E5 8A		    MOV A, TL0       ; Store TL0 in R0
-  190:	  00C1	F8		    MOV R0, A
-  191:	  00C2	E5 8C		    MOV A, TH0       ; Store TH0 in R1
-  192:	  00C4	F9		    MOV R1, A
-  193:
-  194:				    ; Use DPH:DPL = R1:R0 to load 16-bit value
-  195:	  00C5	88 82		    MOV DPL, R0
-  196:	  00C7	89 83		    MOV DPH, R1
-  197:
-  198:				    ; Approximate Distance = timer / 53
-  199:				    ; Result will be in R2
-  200:	  00C9	7A 00		    MOV R2, #0        ; Distance result = 0
+  155:	  0094	7B 28		L1: MOV R3, #40
+  156:	  0096	00		L2: NOP
+  157:	  0097	DB FD		    DJNZ R3, L2
+  158:	  0099	DA F9		    DJNZ R2, L1
+  159:	  009B	22		    RET
+  160:
+  161:				;----------------------------------------------------------
+  162:				; Delay ≈10 µs
+  163:	  009C			DELAY_10US:
+  164:	  009C	00		    NOP
+  165:	  009D	00		    NOP
+  166:	  009E	00		    NOP
+  167:	  009F	00		    NOP
+  168:	  00A0	00		    NOP
+  169:	  00A1	00		    NOP
+  170:	  00A2	00		    NOP
+  171:	  00A3	00		    NOP
+  172:	  00A4	00		    NOP
+  173:	  00A5	00		    NOP
+  174:	  00A6	22		    RET
+  175:
+  176:				;----------------------------------------------------------
+  177:				; START
+  178:	  00A7			START:
+  179:	  00A7	75 89 01	    MOV TMOD, #01H       ; Timer1 Mode 2 (for UART), Timer0 Mode 1
+  180:	  00AA	C2 8C		    CLR TR0               ; Ensure Timer0 OFF
+  181:
+  182:	  00AC	75 8A 00	    MOV TL0, #00h  ; Reset Timer0 for next round
+  183:	  00AF	75 8C 00	    MOV TH0, #00h
+  184:
+  185:	  00B2	C2 A0		    CLR LED0 ; make sure all pins are ready
+  186:	  00B4	C2 A1		    CLR LED1
+  187:	  00B6	C2 A2		    CLR LED2
+  188:	  00B8	C2 A3		    CLR LED3
+  189:	  00BA	C2 A4		    CLR LED4
+  190:	  00BC	C2 A5		    CLR LED5
+  191:	  00BE	C2 A6		    CLR LED6
+  192:	  00C0	C2 A7		    CLR LED7
+  193:	  00C2	C2 91		    CLR US_TRIG_R
+  194:	  00C4	C2 90		    CLR US_ECHO_R
+  195:	  00C6	C2 95		    CLR LCD_RS
+  196:	  00C8	C2 96		    CLR LCD_RW
+  197:	  00CA	C2 97		    CLR LCD_EN
+  198:	  00CC	C2 B0		    CLR LCD_DATA
+  199:
+  200:	  00CE	11 24		    ACALL LCD_INIT       ; Initialize LCD
   201:
-  202:	  00CB			DIV_LOOP:
-  203:	  00CB	C3		    CLR C
-  204:	  00CC	E5 82		    MOV A, DPL
-  205:	  00CE	94 35		    SUBB A, #53
-  206:	  00D0	F5 82		    MOV DPL, A
-  207:	  00D2	E5 83		    MOV A, DPH
-  208:	  00D4	94 00		    SUBB A, #00
-  209:	  00D6	F5 83		    MOV DPH, A
-  210:	  00D8	40 03		    JC DIV_DONE       ; Stop if DPH:DPL < 53
-  211:	  00DA	0A		    INC R2
+  202:				    ;send start string
+  203:	  00D0	90 01 88	    MOV DPTR,#MSG_START
+  204:	  00D3	11 35		    ACALL LCD_SEND_STRING
+  205:	  00D5	11 92		    ACALL DELAY_500US
+  206:	  00D7	11 3F		    ACALL LCD_CLEAR
+  207:
+  208:	  00D9			MAIN_TOGGLE:
+  209:				    ; Send TRIG pulse
+  210:	  00D9	D2 91		    SETB US_TRIG_R
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
 
@@ -257,62 +257,62 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
  Line  I  Addr  Code            Source
 
-  212:	  00DB	80 EE		    SJMP DIV_LOOP
+  211:	  00DB	11 9C		    ACALL DELAY_10US
+  212:	  00DD	C2 91		    CLR  US_TRIG_R
   213:
-  214:	  00DD			DIV_DONE:
-  215:				    ; Display Distance (in cm)
-  216:	  00DD	90 01 5A	    MOV DPTR, #MSG_DISTANCE
-  217:	  00E0	11 48		    ACALL SEND_STRING
-  218:	  00E2	EA		    MOV A, R2
-  219:	  00E3	11 17		    ACALL SEND_DECIMAL
-  220:	  00E5	74 0D		    MOV A, #13
-  221:	  00E7	11 0F		    ACALL UART_SEND
-  222:	  00E9	74 0A		    MOV A, #10
-  223:	  00EB	11 0F		    ACALL UART_SEND
-  224:
-  225:				        ; ----- Clear all LEDs (P2.0 to P2.7) -----
-  226:	  00ED	C2 A0		    CLR LED0
-  227:	  00EF	C2 A1		    CLR LED1
-  228:	  00F1	C2 A2		    CLR LED2
-  229:	  00F3	C2 A3		    CLR LED3
-  230:	  00F5	C2 A4		    CLR LED4
-  231:	  00F7	C2 A5		    CLR LED5
-  232:	  00F9	C2 A6		    CLR LED6
-  233:	  00FB	C2 A7		    CLR LED7
-  234:
-  235:				    ; ----- Light LEDs based on distance in R2 -----
-  236:	  00FD	EA		    MOV A, R2
-  237:
-  238:	  00FE	B4 0A 02	    CJNE A, #10, CHECK_20
-  239:	  0101	D2 A0		    SETB LED0
-  240:
-  241:	  0103			CHECK_20:
-  242:	  0103	40 33		    JC DONE_LEDS       ; A < 10
-  243:	  0105	D2 A0		    SETB LED0
-  244:	  0107	B4 14 02	    CJNE A, #20, CHECK_30
-  245:	  010A	D2 A1		    SETB LED1
-  246:
-  247:	  010C			CHECK_30:
-  248:	  010C	40 2A		    JC DONE_LEDS
-  249:	  010E	D2 A1		    SETB LED1
-  250:	  0110	B4 1E 02	    CJNE A, #30, CHECK_40
-  251:	  0113	D2 A2		    SETB LED2
+  214:	  00DF			WAIT_ECHO_HIGH: ; also this was JB and that was waiting for echo low which doesnt make any sense
+  215:	  00DF	30 90 FD	    JNB   US_ECHO_R, WAIT_ECHO_HIGH
+  216:	  00E2	C2 8D		    CLR  TF0
+  217:	  00E4	C2 8C		    CLR  TR0
+  218:
+  219:				    ; Start Timer0
+  220:	  00E6	D2 8C		    SETB TR0
+  221:
+  222:
+  223:	  00E8			WAIT_RISE:
+  224:	  00E8	20 90 0E	    JB   US_ECHO_R, GOT_ECHO
+  225:	  00EB	D8 FB		    DJNZ  R0, WAIT_RISE
+  226:	  00ED	D9 F9		    DJNZ  R1, WAIT_RISE
+  227:	  00EF	80 02		    SJMP  NO_ECHO
+  228:
+  229:	  00F1	C2 93		CLR LED_OUT
+  230:
+  231:	  00F3			NO_ECHO:
+  232:	  00F3	C2 8C		    CLR TR0
+  233:	  00F5	D2 93		    SETB LED_OUT
+  234:	  00F7	80 E0		    SJMP MAIN_TOGGLE
+  235:
+  236:	  00F9			GOT_ECHO:
+  237:				;i can belive this fixed everything
+  238:	  00F9			WAIT_ECHO_LOW:
+  239:	  00F9	20 90 FD	    JB   US_ECHO_R, WAIT_ECHO_LOW
+  240:	  00FC	C2 8D		    CLR  TF0
+  241:	  00FE	C2 8C		    CLR  TR0
+  242:
+  243:				    ; -----------------------------
+  244:				    ; Print "Pulse: " and Timer0
+  245:				    ; -----------------------------
+  246:	  0100	90 01 80	    MOV DPTR, #MSG_PULSE
+  247:	  0103	11 35		    ACALL LCD_SEND_STRING
+  248:	  0105	E5 8C		    MOV A,TH0
+  249:	  0107	11 73		    ACALL LCD_SEND_HEX
+  250:	  0109	E5 8A		    MOV A,TL0
+  251:	  010B	11 73		    ACALL LCD_SEND_HEX
   252:
-  253:	  0115			CHECK_40:
-  254:	  0115	40 21		    JC DONE_LEDS
-  255:	  0117	D2 A2		    SETB LED2
-  256:	  0119	B4 28 02	    CJNE A, #40, CHECK_50
-  257:	  011C	D2 A3		    SETB LED3
+  253:				        ; Calculate pulse duration
+  254:	  010D	E5 8A		    MOV A, TL0       ; Store TL0 in R0
+  255:	  010F	F8		    MOV R0, A
+  256:	  0110	E5 8C		    MOV A, TH0       ; Store TH0 in R1
+  257:	  0112	F9		    MOV R1, A
   258:
-  259:	  011E			CHECK_50:
-  260:	  011E	40 18		    JC DONE_LEDS
-  261:	  0120	D2 A3		    SETB LED3
-  262:	  0122	B4 32 02	    CJNE A, #50, CHECK_60
-  263:	  0125	D2 A4		    SETB LED4
-  264:
-  265:	  0127			CHECK_60:
-  266:	  0127	40 0F		    JC DONE_LEDS
-  267:	  0129	D2 A4		    SETB LED4
+  259:				    ; Use DPH:DPL = R1:R0 to load 16-bit value
+  260:	  0113	88 82		    MOV DPL, R0
+  261:	  0115	89 83		    MOV DPH, R1
+  262:
+  263:				    ; Approximate Distance = timer / 53
+  264:				    ; Result will be in R7
+  265:	  0117	7F 00		    MOV R7, #0        ; Distance result = 0
+  266:
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 6
 
@@ -320,38 +320,108 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
  Line  I  Addr  Code            Source
 
-  268:	  012B	B4 3C 02	    CJNE A, #60, CHECK_70
-  269:	  012E	D2 A5		    SETB LED5
-  270:
-  271:	  0130			CHECK_70:
-  272:	  0130	40 06		    JC DONE_LEDS
-  273:	  0132	D2 A5		    SETB LED5
-  274:	  0134	D2 A6		    SETB LED6
-  275:	  0136	D2 A7		    SETB LED7           ; Everything beyond 70 cm → all LEDs ON
-  276:
-  277:	  0138			DONE_LEDS:
+  267:	  0119			DIV_LOOP:
+  268:	  0119	C3		    CLR C
+  269:	  011A	E5 82		    MOV A, DPL
+  270:	  011C	94 35		    SUBB A, #53
+  271:	  011E	F5 82		    MOV DPL, A
+  272:	  0120	E5 83		    MOV A, DPH
+  273:	  0122	94 00		    SUBB A, #00
+  274:	  0124	F5 83		    MOV DPH, A
+  275:	  0126	40 03		    JC DIV_DONE       ; Stop if DPH:DPL < 53
+  276:	  0128	0F		    INC R7
+  277:	  0129	80 EE		    SJMP DIV_LOOP
   278:
-  279:				    ; Reset Timer0 for next round
-  280:	  0138	75 8A 00	    MOV TL0, #00h
-  281:	  013B	75 8C 00	    MOV TH0, #00h
-  282:
+  279:	  012B			DIV_DONE:
+  280:				    ; ---- move cursor to start of line 2 ------------------
+  281:	  012B	74 C0		    MOV  A,#0C0h              ; DDRAM addr 40 → line 2, col 0
+  282:	  012D	11 0C		    ACALL LCD_CMD
   283:
-  284:	  013E	02 00 83	    LJMP MAIN_TOGGLE
-  285:
-  286:				;---------------------Rom Message------------------------------------
-  287:	  0141	50 75 6C 73	MSG_PULSE: DB "Pulse: ", 0
-	  0145	65 3A 20 00
-  288:	  0149	50 72 6F 67	MSG_START: DB "Program Starting",0
-	  014D	72 61 6D 20
-	  0151	53 74 61 72
-	  0155	74 69 6E 67
-	  0159	00
-  289:	  015A	44 69 73 74	MSG_DISTANCE: DB "Distance: ", 0
-	  015E	61 6E 63 65
-	  0162	3A 20 00
-  290:
-  291:
-  292:				END
+  284:				    ; Display Distance (in cm)
+  285:	  012F	90 01 99	    MOV DPTR, #MSG_DISTANCE
+  286:	  0132	11 35		    ACALL LCD_SEND_STRING
+  287:	  0134	EF		    MOV A, R7
+  288:	  0135	11 46		    ACALL LCD_SEND_DECIMAL
+  289:
+  290:				        ; ----- Clear all LEDs (P2.0 to P2.7) -----
+  291:	  0137	75 A0 00	    MOV P2,#0h
+  292:
+  293:				    ; ----- Light LEDs based on distance in R2 -----
+  294:	  013A	EF		    MOV A, R7
+  295:
+  296:	  013B	B4 0A 02	    CJNE A, #10, CHECK_20
+  297:	  013E	D2 A0		    SETB LED0
+  298:
+  299:	  0140			CHECK_20:
+  300:	  0140	40 33		    JC DONE_LEDS       ; A < 10
+  301:	  0142	D2 A0		    SETB LED0
+  302:	  0144	B4 14 02	    CJNE A, #20, CHECK_30
+  303:	  0147	D2 A1		    SETB LED1
+  304:
+  305:	  0149			CHECK_30:
+  306:	  0149	40 2A		    JC DONE_LEDS
+  307:	  014B	D2 A1		    SETB LED1
+  308:	  014D	B4 1E 02	    CJNE A, #30, CHECK_40
+  309:	  0150	D2 A2		    SETB LED2
+  310:
+  311:	  0152			CHECK_40:
+  312:	  0152	40 21		    JC DONE_LEDS
+  313:	  0154	D2 A2		    SETB LED2
+  314:	  0156	B4 28 02	    CJNE A, #40, CHECK_50
+  315:	  0159	D2 A3		    SETB LED3
+  316:
+  317:	  015B			CHECK_50:
+  318:	  015B	40 18		    JC DONE_LEDS
+  319:	  015D	D2 A3		    SETB LED3
+  320:	  015F	B4 32 02	    CJNE A, #50, CHECK_60
+  321:	  0162	D2 A4		    SETB LED4
+  322:
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
+
+
+
+ Line  I  Addr  Code            Source
+
+  323:	  0164			CHECK_60:
+  324:	  0164	40 0F		    JC DONE_LEDS
+  325:	  0166	D2 A4		    SETB LED4
+  326:	  0168	B4 3C 02	    CJNE A, #60, CHECK_70
+  327:	  016B	D2 A5		    SETB LED5
+  328:
+  329:	  016D			CHECK_70:
+  330:	  016D	40 06		    JC DONE_LEDS
+  331:	  016F	D2 A5		    SETB LED5
+  332:	  0171	D2 A6		    SETB LED6
+  333:	  0173	D2 A7		    SETB LED7           ; Everything beyond 70 cm → all LEDs ON
+  334:
+  335:	  0175			DONE_LEDS:
+  336:
+  337:				    ; Reset Timer0 for next round
+  338:	  0175	75 8A 00	    MOV TL0, #00h
+  339:	  0178	75 8C 00	    MOV TH0, #00h
+  340:
+  341:	  017B	11 3F		    ACALL LCD_CLEAR
+  342:	  017D	02 00 D9	    LJMP MAIN_TOGGLE
+  343:
+  344:				;---------------------Rom Message------------------------------------
+  345:	  0180	50 75 6C 73	MSG_PULSE: DB "Pulse: ", 0
+	  0184	65 3A 20 00
+  346:	  0188	50 72 6F 67	MSG_START: DB "Program Starting",0
+	  018C	72 61 6D 20
+	  0190	53 74 61 72
+	  0194	74 69 6E 67
+	  0198	00
+  347:	  0199	44 69 73 74	MSG_DISTANCE: DB "Distance: ", 0
+	  019D	61 6E 63 65
+	  01A1	3A 20 00
+  348:	  01A4	30 31 32 33	HEX_TAB: DB  "0123456789ABCDEF" ; 16-byte table
+	  01A8	34 35 36 37
+	  01AC	38 39 41 42
+	  01B0	43 44 45 46
+  349:
+  350:
+  351:				END
 
 
 
@@ -364,7 +434,7 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
 
 
-ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 8
 
 
 
@@ -381,18 +451,21 @@ SYMBOL				  TYPE     VALUE	LINE
 AC				  BIT	      D6
 ACC				  DATA	      E0
 B				  DATA	      F0
-CHECK_20			  CODE	    0103	 241
-CHECK_30			  CODE	    010C	 247
-CHECK_40			  CODE	    0115	 253
-CHECK_50			  CODE	    011E	 259
-CHECK_60			  CODE	    0127	 265
-CHECK_70			  CODE	    0130	 271
+CHECK_20			  CODE	    0140	 299
+CHECK_30			  CODE	    0149	 305
+CHECK_40			  CODE	    0152	 311
+CHECK_50			  CODE	    015B	 317
+CHECK_60			  CODE	    0164	 323
+CHECK_70			  CODE	    016D	 329
 CY				  BIT	      D7
-DELAY_10US			  CODE	    0052	 101
-DIV_DONE			  CODE	    00DD	 214
-DIV_LOOP			  CODE	    00CB	 202
-DONE_LEDS			  CODE	    0138	 277
-DONE_STRING			  CODE	    0051	  96
+DELAY_10US			  CODE	    009C	 163
+DELAY_500US			  CODE	    0092	 153
+DIV_DONE			  CODE	    012B	 279
+DIV_LOOP			  CODE	    0119	 267
+DL1				  CODE	    0005	  36
+DL2				  CODE	    0007	  37
+DONE_DEC			  CODE	    0072	 123
+DONE_LEDS			  CODE	    0175	 335
 DPH				  DATA	      83
 DPL				  DATA	      82
 EA				  BIT	      AF
@@ -404,7 +477,9 @@ EX1				  BIT	      AA
 EXTI0				  CODE	    0003
 EXTI1				  CODE	    0013
 F0				  BIT	      D5
-GOT_ECHO			  CODE	    00A3	 167
+GOT_ECHO			  CODE	    00F9	 236
+HEX_TAB				  CODE	    01A4	 348
+HEX_TO_ASCII			  CODE	    0085	 142
 IE				  DATA	      A8
 IE0				  BIT	      89
 IE1				  BIT	      8B
@@ -413,6 +488,28 @@ INT1				  BIT	      B3
 IP				  DATA	      B8
 IT0				  BIT	      88
 IT1				  BIT	      8A
+L1				  CODE	    0094	 155
+L2				  CODE	    0096	 156
+LCD_CLEAR			  CODE	    003F	  80
+LCD_CMD				  CODE	    000C	  41
+LCD_DATA			  NUMBER    00B0	  24
+LCD_DATA_WRITE			  CODE	    0019	  50
+LCD_DELAY			  CODE	    0003	  34
+LCD_EN				  NUMBER    0097	  23
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 9
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
+LCD_INIT			  CODE	    0024	  58
+LCD_RS				  NUMBER    0095	  21
+LCD_RW				  NUMBER    0096	  22
+LCD_SEND_DECIMAL		  CODE	    0046	  90
+LCD_SEND_HEX			  CODE	    0073	 126
+LCD_SEND_STRING			  CODE	    0035	  70
+LCD_STRING_DONE			  CODE	    003E	  77
 LED0				  NUMBER    00A0	  10
 LED1				  NUMBER    00A1	  11
 LED2				  NUMBER    00A2	  12
@@ -421,21 +518,12 @@ LED4				  NUMBER    00A4	  14
 LED5				  NUMBER    00A5	  15
 LED6				  NUMBER    00A6	  16
 LED7				  NUMBER    00A7	  17
-LED_OUT				  NUMBER    0093	  18
-MAIN_TOGGLE			  CODE	    0083	 139
-MSG_DISTANCE			  CODE	    015A	 289
-MSG_PULSE			  CODE	    0141	 287
-MSG_START			  CODE	    0149	 288
-
-ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 8
-
-
-
-SYMBOL				  TYPE     VALUE	LINE
-------------------------------------------------------------
-NIBBLE_TO_ASCII			  CODE	    0035	  69
-NO_ECHO				  CODE	    009D	 162
-OK_ASCII			  CODE	    003C	  73
+LED_OUT				  NUMBER    0093	  19
+MAIN_TOGGLE			  CODE	    00D9	 208
+MSG_DISTANCE			  CODE	    0199	 347
+MSG_PULSE			  CODE	    0180	 345
+MSG_START			  CODE	    0188	 346
+NO_ECHO				  CODE	    00F3	 231
 OV				  BIT	      D2
 P				  BIT	      D0
 P0				  DATA	      80
@@ -443,6 +531,7 @@ P1				  DATA	      90
 P2				  DATA	      A0
 P3				  DATA	      B0
 PCON				  DATA	      87
+PRINT_ONES			  CODE	    006D	 119
 PS				  BIT	      BC
 PSW				  DATA	      D0
 PT0				  BIT	      B9
@@ -459,19 +548,24 @@ RS1				  BIT	      D4
 RXD				  BIT	      B0
 SBUF				  DATA	      99
 SCON				  DATA	      98
-SEND_DECIMAL			  CODE	    0017	  44
-SEND_HEX			  CODE	    0026	  56
-SEND_STRING			  CODE	    0048	  89
-SEND_TIMER0_HEX			  CODE	    003D	  78
 SINT				  CODE	    0023
+SKIP_HUNDREDS			  CODE	    005B	 105
+SKIP_TENS			  CODE	    0064	 112
 SM0				  BIT	      9F
 SM1				  BIT	      9E
 SM2				  BIT	      9D
 SP				  DATA	      81
-START				  CODE	    005D	 116
+START				  CODE	    00A7	 178
 T0				  BIT	      B4
 T1				  BIT	      B5
 TB8				  BIT	      9B
+
+ASEM-51 V1.3                                        Copyright (c) 2002 by W.W. Heinz                                         PAGE 10
+
+
+
+SYMBOL				  TYPE     VALUE	LINE
+------------------------------------------------------------
 TCON				  DATA	      88
 TF0				  BIT	      8D
 TF1				  BIT	      8F
@@ -486,19 +580,9 @@ TMOD				  DATA	      89
 TR0				  BIT	      8C
 TR1				  BIT	      8E
 TXD				  BIT	      B1
-UART_INIT			  CODE	    0003	  26
-UART_SEND			  CODE	    000F	  35
 US_ECHO_R			  NUMBER    0090	   9
-
-ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 9
-
-
-
-SYMBOL				  TYPE     VALUE	LINE
-------------------------------------------------------------
 US_TRIG_R			  NUMBER    0091	   8
-WAIT_ECHO_HIGH			  CODE	    0089	 145
-WAIT_ECHO_LOW			  CODE	    00A3	 169
-WAIT_RISE			  CODE	    0092	 154
-WAIT_SEND			  CODE	    0011	  37
+WAIT_ECHO_HIGH			  CODE	    00DF	 214
+WAIT_ECHO_LOW			  CODE	    00F9	 238
+WAIT_RISE			  CODE	    00E8	 223
 WR				  BIT	      B6

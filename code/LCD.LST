@@ -28,7 +28,7 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
     8:		D      00B0	LCD_DATA    EQU  P3
     9:
    10:		N      0000	ORG 0000h
-   11:	  0000	02 00 A2	LJMP START
+   11:	  0000	02 00 AA	LJMP START
    12:
    13:				;=======================
    14:				; LCD SUB_ROUTINES
@@ -76,54 +76,54 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
    49:	  0034	11 0C		    ACALL LCD_CMD
    50:	  0036	22		    RET
    51:
-   52:	  0037			LCD_SEND_STRING:
-   53:	  0037	E4		    CLR A
-   54:	  0038	93		    MOVC A, @A+DPTR
-   55:	  0039	60 05		    JZ LCD_STRING_DONE
-   56:	  003B	11 19		    ACALL LCD_DATA_WRITE
-   57:	  003D	A3		    INC DPTR
-   58:	  003E	80 F7		    SJMP LCD_SEND_STRING
-   59:	  0040			LCD_STRING_DONE:
-   60:	  0040	22		    RET
-   61:
-   62:				;----------------------------------------------------------
-   63:				;  LCD_SEND_DECIMAL  – prints an 8-bit value in A (0-255)
-   64:				;    • no leading zeros for <100 (prints “7”, “42”, “255”, …)
-   65:				;----------------------------------------------------------
-   66:	  0041			LCD_SEND_DECIMAL:
-   67:	  0041	75 F0 64	    MOV     B,#100          ; 1)  hundreds
-   68:	  0044	84		    DIV     AB              ;    A = hundreds, B = 0-99 remainder
-   69:	  0045	FC		    MOV     R4,A            ;    save hundreds
-   70:	  0046	E5 F0		    MOV     A,B             ; 2)  tens / ones
-   71:	  0048	75 F0 0A	    MOV     B,#10
-   72:	  004B	84		    DIV     AB              ;    A = tens, B = ones
-   73:	  004C	FD		    MOV     R5,A
-   74:	  004D	AE F0		    MOV     R6,B
-   75:
-   76:				    ; -------- print hundreds if non-zero ---------------
-   77:	  004F	EC		    MOV     A,R4
-   78:	  0050	60 04		    JZ      SKIP_HUNDREDS
-   79:	  0052	24 30		    ADD     A,#'0'
-   80:	  0054	11 19		    ACALL   LCD_DATA_WRITE
-   81:	  0056			SKIP_HUNDREDS:
-   82:				    ; -------- print tens (always if hundreds shown) ----
-   83:	  0056	ED		    MOV     A,R5
-   84:	  0057	60 06		    JZ      SKIP_TENS
-   85:	  0059	24 30		    ADD     A,#'0'
-   86:	  005B	11 19		    ACALL   LCD_DATA_WRITE
-   87:	  005D	80 09		    SJMP    PRINT_ONES
-   88:	  005F			SKIP_TENS:
-   89:				    ; if both hundreds and tens were zero, we still need one ‘0’
-   90:	  005F	EC		    MOV     A,R4
-   91:	  0060	70 06		    JNZ     PRINT_ONES      ; already printed a hundreds digit
-   92:	  0062	74 30		    MOV     A,#'0'          ; value was 0-9, so show a single 0
-   93:	  0064	11 19		    ACALL   LCD_DATA_WRITE
-   94:	  0066	80 05		    SJMP    DONE_DEC
-   95:	  0068			PRINT_ONES:
-   96:	  0068	EE		    MOV     A,R6
-   97:	  0069	24 30		    ADD     A,#'0'
-   98:	  006B	11 19		    ACALL   LCD_DATA_WRITE
-   99:	  006D			DONE_DEC:
+   52:				; )NOTE: must move value you wish to print into register DPTR)
+   53:	  0037			LCD_SEND_STRING:
+   54:	  0037	E4		    CLR A
+   55:	  0038	93		    MOVC A, @A+DPTR
+   56:	  0039	60 05		    JZ LCD_STRING_DONE
+   57:	  003B	11 19		    ACALL LCD_DATA_WRITE
+   58:	  003D	A3		    INC DPTR
+   59:	  003E	80 F7		    SJMP LCD_SEND_STRING
+   60:	  0040			LCD_STRING_DONE:
+   61:	  0040	22		    RET
+   62:
+   63:				;----------------------------------------------------------
+   64:				;  LCD_SEND_DECIMAL  – prints an 8-bit value in A (0-255)
+   65:				; )NOTE: must move value you wish to print into register A)
+   66:				;----------------------------------------------------------
+   67:	  0041			LCD_SEND_DECIMAL:
+   68:	  0041	75 F0 64	    MOV     B,#100          ; 1)  hundreds
+   69:	  0044	84		    DIV     AB              ;    A = hundreds, B = 0-99 remainder
+   70:	  0045	FC		    MOV     R4,A            ;    save hundreds
+   71:	  0046	E5 F0		    MOV     A,B             ; 2)  tens / ones
+   72:	  0048	75 F0 0A	    MOV     B,#10
+   73:	  004B	84		    DIV     AB              ;    A = tens, B = ones
+   74:	  004C	FD		    MOV     R5,A
+   75:	  004D	AE F0		    MOV     R6,B
+   76:
+   77:				    ; -------- print hundreds if non-zero ---------------
+   78:	  004F	EC		    MOV     A,R4
+   79:	  0050	60 04		    JZ      SKIP_HUNDREDS
+   80:	  0052	24 30		    ADD     A,#'0'
+   81:	  0054	11 19		    ACALL   LCD_DATA_WRITE
+   82:	  0056			SKIP_HUNDREDS:
+   83:				    ; -------- print tens (always if hundreds shown) ----
+   84:	  0056	ED		    MOV     A,R5
+   85:	  0057	60 06		    JZ      SKIP_TENS
+   86:	  0059	24 30		    ADD     A,#'0'
+   87:	  005B	11 19		    ACALL   LCD_DATA_WRITE
+   88:	  005D	80 09		    SJMP    PRINT_ONES
+   89:	  005F			SKIP_TENS:
+   90:				    ; if both hundreds and tens were zero, we still need one ‘0’
+   91:	  005F	EC		    MOV     A,R4
+   92:	  0060	70 06		    JNZ     PRINT_ONES      ; already printed a hundreds digit
+   93:	  0062	74 30		    MOV     A,#'0'          ; value was 0-9, so show a single 0
+   94:	  0064	11 19		    ACALL   LCD_DATA_WRITE
+   95:	  0066	80 05		    SJMP    DONE_DEC
+   96:	  0068			PRINT_ONES:
+   97:	  0068	EE		    MOV     A,R6
+   98:	  0069	24 30		    ADD     A,#'0'
+   99:	  006B	11 19		    ACALL   LCD_DATA_WRITE
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 3
 
@@ -131,62 +131,62 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
  Line  I  Addr  Code            Source
 
-  100:	  006D	22		    RET
-  101:
-  102:	  006E			LCD_SEND_HEX:      ;send values to R6 first
-  103:	  006E	F5 F0		    MOV B, A
-  104:	  0070	C4		    SWAP A
-  105:	  0071	54 0F		    ANL A, #0Fh
-  106:	  0073	11 80		    ACALL HEX_TO_ASCII
-  107:	  0075	11 19		    ACALL LCD_DATA_WRITE
-  108:
-  109:	  0077	E5 F0		    MOV A, B
-  110:	  0079	54 0F		    ANL A, #0Fh
-  111:	  007B	11 80		    ACALL HEX_TO_ASCII
-  112:	  007D	11 19		    ACALL LCD_DATA_WRITE
-  113:	  007F	22		    RET
-  114:
-  115:				;----------------------------------------------------------
-  116:				;  HEX_TO_ASCII  – expects 0-15 in A, returns ‘0’…‘F’ in A (uses a ROM look-up so it’s
+  100:	  006D			DONE_DEC:
+  101:	  006D	22		    RET
+  102:
+  103:	  006E			LCD_SEND_HEX:      ;send values to R6 first
+  104:	  006E	F5 F0		    MOV B, A
+  105:	  0070	C4		    SWAP A
+  106:	  0071	54 0F		    ANL A, #0Fh
+  107:	  0073	11 80		    ACALL HEX_TO_ASCII
+  108:	  0075	11 19		    ACALL LCD_DATA_WRITE
+  109:
+  110:	  0077	E5 F0		    MOV A, B
+  111:	  0079	54 0F		    ANL A, #0Fh
+  112:	  007B	11 80		    ACALL HEX_TO_ASCII
+  113:	  007D	11 19		    ACALL LCD_DATA_WRITE
+  114:	  007F	22		    RET
+  115:
+  116:				;----------------------------------------------------------
+  117:				;  HEX_TO_ASCII  – expects 0-15 in A, returns ‘0’…‘F’ in A (uses a ROM look-up so it’s
 				 always right)
-  117:				;----------------------------------------------------------
-  118:	  0080			HEX_TO_ASCII:
-  119:	  0080	C0 82		    PUSH    DPL             ; keep caller’s DPTR safe
-  120:	  0082	C0 83		    PUSH    DPH
-  121:	  0084	90 00 DF	    MOV     DPTR,#HEX_TAB   ; point to table
-  122:	  0087	93		    MOVC    A,@A+DPTR       ; fetch the correct character
-  123:	  0088	D0 83		    POP     DPH
-  124:	  008A	D0 82		    POP     DPL
-  125:	  008C	22		    RET
-  126:
-  127:				;=======================
-  128:				; Delay ≈ 500 µs
-  129:	  008D			DELAY_500US:
-  130:	  008D	7A 05		    MOV R2, #5
-  131:	  008F	7B 28		L1: MOV R3, #40
-  132:	  0091	00		L2: NOP
-  133:	  0092	DB FD		    DJNZ R3, L2
-  134:	  0094	DA F9		    DJNZ R2, L1
-  135:	  0096	22		    RET
-  136:
-  137:				;=======================
-  138:				; Delay ≈10 µs
-  139:	  0097			DELAY_10US:
-  140:	  0097	00		    NOP
-  141:	  0098	00		    NOP
-  142:	  0099	00		    NOP
-  143:	  009A	00		    NOP
-  144:	  009B	00		    NOP
-  145:	  009C	00		    NOP
-  146:	  009D	00		    NOP
-  147:	  009E	00		    NOP
-  148:	  009F	00		    NOP
-  149:	  00A0	00		    NOP
-  150:	  00A1	22		    RET
-  151:
-  152:				;----------------------------------------------------------
-  153:				; START
-  154:	  00A2			START:
+  118:				;----------------------------------------------------------
+  119:	  0080			HEX_TO_ASCII:
+  120:	  0080	C0 82		    PUSH    DPL             ; keep caller’s DPTR safe
+  121:	  0082	C0 83		    PUSH    DPH
+  122:	  0084	90 00 E7	    MOV     DPTR,#HEX_TAB   ; point to table
+  123:	  0087	93		    MOVC    A,@A+DPTR       ; fetch the correct character
+  124:	  0088	D0 83		    POP     DPH
+  125:	  008A	D0 82		    POP     DPL
+  126:	  008C	22		    RET
+  127:
+  128:				;=======================
+  129:				; Delay ≈ 500 µs
+  130:	  008D			DELAY_500US:
+  131:	  008D	C0 00		    PUSH R2  ; keep values of registers safe
+					 ^
+			  @@@@@ illegal operand @@@@@
+
+  132:	  008F	C0 00		    PUSH R3
+					 ^
+			  @@@@@ illegal operand @@@@@
+
+  133:	  0091	7A 05		    MOV R2, #5
+  134:	  0093	7B 28		L1: MOV R3, #40
+  135:	  0095	00		L2: NOP
+  136:	  0096	DB FD		    DJNZ R3, L2
+  137:	  0098	DA F9		    DJNZ R2, L1
+  138:	  009A	D0 00		    POP R3
+					^
+			  @@@@@ illegal operand @@@@@
+
+  139:	  009C	D0 00		    POP R2
+					^
+			  @@@@@ illegal operand @@@@@
+
+  140:	  009E	22		    RET
+  141:
+  142:				;=======================
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 4
 
@@ -194,54 +194,78 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
  Line  I  Addr  Code            Source
 
-  155:	  00A2	11 26		    ACALL LCD_INIT
+  143:				; Delay ≈10 µs
+  144:	  009F			DELAY_10US:
+  145:	  009F	00		    NOP
+  146:	  00A0	00		    NOP
+  147:	  00A1	00		    NOP
+  148:	  00A2	00		    NOP
+  149:	  00A3	00		    NOP
+  150:	  00A4	00		    NOP
+  151:	  00A5	00		    NOP
+  152:	  00A6	00		    NOP
+  153:	  00A7	00		    NOP
+  154:	  00A8	00		    NOP
+  155:	  00A9	22		    RET
   156:
-  157:	  00A4			MAIN_LOOP:
-  158:	  00A4	7A 56		    MOV R2, #86
-  159:	  00A6	7B 56		    MOV R3, #86
-  160:	  00A8	EA		    MOV A, R2
-  161:	  00A9	2B		    ADD A, R3
-  162:	  00AA	FE		    MOV R6, A
-  163:
-  164:				    ; Show Hex
-  165:	  00AB	90 00 D3	    MOV DPTR, #MSG_HEX
-  166:	  00AE	11 37		    ACALL LCD_SEND_STRING
-  167:	  00B0	EE		    MOV A,R6
-  168:	  00B1	11 6E		    ACALL LCD_SEND_HEX
-  169:
-  170:				    ; ---- move cursor to start of line 2 ------------------
-  171:	  00B3	74 C0		    MOV  A,#0C0h              ; DDRAM addr 40 → line 2, col 0
-  172:	  00B5	11 0C		    ACALL LCD_CMD
-  173:
-  174:				    ; Line 2 or second part
-  175:	  00B7	90 00 D9	    MOV DPTR, #MSG_DEC
-  176:	  00BA	11 37		    ACALL LCD_SEND_STRING
-  177:	  00BC	EE		    MOV A,R6
-  178:	  00BD	11 41		    ACALL LCD_SEND_DECIMAL
-  179:
-  180:				    ; ---------- clear display & wait -------------------------
-  181:	  00BF	74 01		    MOV   A,#01h             ; Clear-Display command
-  182:	  00C1	11 0C		    ACALL LCD_CMD            ; sends it
-  183:	  00C3	11 03		    ACALL LCD_DELAY          ; yields plenty of time (> 1.6 ms)
+  157:				;----------------------------------------------------------
+  158:				; START
+  159:	  00AA			START:
+  160:	  00AA	11 26		    ACALL LCD_INIT
+  161:
+  162:	  00AC			MAIN_LOOP:
+  163:	  00AC	7A 56		    MOV R2, #86
+  164:	  00AE	7B 56		    MOV R3, #86
+  165:	  00B0	EA		    MOV A, R2
+  166:	  00B1	2B		    ADD A, R3
+  167:	  00B2	FE		    MOV R6, A
+  168:	  00B3			PRINT:
+  169:				    ; Show Hex
+  170:	  00B3	90 00 DB	    MOV DPTR, #MSG_HEX
+  171:	  00B6	11 37		    ACALL LCD_SEND_STRING
+  172:	  00B8	EE		    MOV A,R6
+  173:	  00B9	11 6E		    ACALL LCD_SEND_HEX
+  174:
+  175:				    ; ---- move cursor to start of line 2 ------------------
+  176:	  00BB	74 C0		    MOV  A,#0C0h              ; DDRAM addr 40 → line 2, col 0
+  177:	  00BD	11 0C		    ACALL LCD_CMD
+  178:
+  179:				    ; Line 2 or second part
+  180:	  00BF	90 00 E1	    MOV DPTR, #MSG_DEC
+  181:	  00C2	11 37		    ACALL LCD_SEND_STRING
+  182:	  00C4	EE		    MOV A,R6
+  183:	  00C5	11 41		    ACALL LCD_SEND_DECIMAL
   184:
-  185:				    ; ---------- start over -----------------------------------
-  186:	  00C5	80 DD		    SJMP  MAIN_LOOP
-  187:
-  188:				;----------------------------------------------------------
+  185:				    ; ---------- clear display & wait -------------------------
+  186:	  00C7	74 01		    MOV   A,#01h             ; Clear-Display command
+  187:	  00C9	11 0C		    ACALL LCD_CMD            ; sends it
+  188:	  00CB	11 03		    ACALL LCD_DELAY          ; yields plenty of time (> 1.6 ms)
   189:
-  190:	  00C7	48 45 4C 4C	MSG_HELLO: DB "HELLO_WORLD",0
-	  00CB	4F 5F 57 4F
-	  00CF	52 4C 44 00
-  191:	  00D3	48 45 58 3A	MSG_HEX:   DB "HEX: ", 0
-	  00D7	20 00
-  192:	  00D9	44 45 43 3A	MSG_DEC:   DB "DEC: ", 0
-	  00DD	20 00
-  193:	  00DF	30 31 32 33	HEX_TAB: DB  "0123456789ABCDEF" ; 16-byte table
-	  00E3	34 35 36 37
-	  00E7	38 39 41 42
-	  00EB	43 44 45 46
+  190:				    ; ---------- start over -----------------------------------
+  191:	  00CD	80 E4		    SJMP  PRINT
+  192:
+  193:				;----------------------------------------------------------
   194:
-  195:				END
+  195:	  00CF	48 45 4C 4C	MSG_HELLO: DB "HELLO_WORLD",0
+	  00D3	4F 5F 57 4F
+	  00D7	52 4C 44 00
+  196:	  00DB	48 45 58 3A	MSG_HEX:   DB "HEX: ", 0
+
+ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
+
+
+
+ Line  I  Addr  Code            Source
+
+	  00DF	20 00
+  197:	  00E1	44 45 43 3A	MSG_DEC:   DB "DEC: ", 0
+	  00E5	20 00
+  198:	  00E7	30 31 32 33	HEX_TAB: DB  "0123456789ABCDEF" ; 16-byte table
+	  00EB	34 35 36 37
+	  00EF	38 39 41 42
+	  00F3	43 44 45 46
+  199:
+  200:				END
 
 
 
@@ -249,12 +273,7 @@ ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. 
 
                      register banks used:  ---
 
-                     no errors
-
-ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 5
-
-
-
+                     4 errors detected
 
 
 
@@ -277,11 +296,11 @@ AC				  BIT	      D6
 ACC				  DATA	      E0
 B				  DATA	      F0
 CY				  BIT	      D7
-DELAY_10US			  CODE	    0097	 139
-DELAY_500US			  CODE	    008D	 129
+DELAY_10US			  CODE	    009F	 144
+DELAY_500US			  CODE	    008D	 130
 DL1				  CODE	    0005	  18
 DL2				  CODE	    0007	  19
-DONE_DEC			  CODE	    006D	  99
+DONE_DEC			  CODE	    006D	 100
 DPH				  DATA	      83
 DPL				  DATA	      82
 EA				  BIT	      AF
@@ -293,8 +312,8 @@ EX1				  BIT	      AA
 EXTI0				  CODE	    0003
 EXTI1				  CODE	    0013
 F0				  BIT	      D5
-HEX_TAB				  CODE	    00DF	 193
-HEX_TO_ASCII			  CODE	    0080	 118
+HEX_TAB				  CODE	    00E7	 198
+HEX_TO_ASCII			  CODE	    0080	 119
 IE				  DATA	      A8
 IE0				  BIT	      89
 IE1				  BIT	      8B
@@ -303,8 +322,8 @@ INT1				  BIT	      B3
 IP				  DATA	      B8
 IT0				  BIT	      88
 IT1				  BIT	      8A
-L1				  CODE	    008F	 131
-L2				  CODE	    0091	 132
+L1				  CODE	    0093	 134
+L2				  CODE	    0095	 135
 LCD_CMD				  CODE	    000C	  23
 LCD_DATA			  NUMBER    00B0	   8
 LCD_DATA_WRITE			  CODE	    0019	  32
@@ -313,14 +332,14 @@ LCD_EN				  NUMBER    0097	   7
 LCD_INIT			  CODE	    0026	  41
 LCD_RS				  NUMBER    0095	   5
 LCD_RW				  NUMBER    0096	   6
-LCD_SEND_DECIMAL		  CODE	    0041	  66
-LCD_SEND_HEX			  CODE	    006E	 102
-LCD_SEND_STRING			  CODE	    0037	  52
-LCD_STRING_DONE			  CODE	    0040	  59
-MAIN_LOOP			  CODE	    00A4	 157
-MSG_DEC				  CODE	    00D9	 192
-MSG_HELLO			  CODE	    00C7	 190
-MSG_HEX				  CODE	    00D3	 191
+LCD_SEND_DECIMAL		  CODE	    0041	  67
+LCD_SEND_HEX			  CODE	    006E	 103
+LCD_SEND_STRING			  CODE	    0037	  53
+LCD_STRING_DONE			  CODE	    0040	  60
+MAIN_LOOP			  CODE	    00AC	 162
+MSG_DEC				  CODE	    00E1	 197
+MSG_HELLO			  CODE	    00CF	 195
+MSG_HEX				  CODE	    00DB	 196
 
 ASEM-51 V1.3                                         Copyright (c) 2002 by W.W. Heinz                                         PAGE 7
 
@@ -335,7 +354,8 @@ P1				  DATA	      90
 P2				  DATA	      A0
 P3				  DATA	      B0
 PCON				  DATA	      87
-PRINT_ONES			  CODE	    0068	  95
+PRINT				  CODE	    00B3	 168
+PRINT_ONES			  CODE	    0068	  96
 PS				  BIT	      BC
 PSW				  DATA	      D0
 PT0				  BIT	      B9
@@ -353,13 +373,13 @@ RXD				  BIT	      B0
 SBUF				  DATA	      99
 SCON				  DATA	      98
 SINT				  CODE	    0023
-SKIP_HUNDREDS			  CODE	    0056	  81
-SKIP_TENS			  CODE	    005F	  88
+SKIP_HUNDREDS			  CODE	    0056	  82
+SKIP_TENS			  CODE	    005F	  89
 SM0				  BIT	      9F
 SM1				  BIT	      9E
 SM2				  BIT	      9D
 SP				  DATA	      81
-START				  CODE	    00A2	 154
+START				  CODE	    00AA	 159
 T0				  BIT	      B4
 T1				  BIT	      B5
 TB8				  BIT	      9B
