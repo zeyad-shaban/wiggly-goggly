@@ -1,4 +1,4 @@
-A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 18:19:08 PAGE     1
+A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 18:44:26 PAGE     1
 
 
 MACRO ASSEMBLER A51 V8.2.7.0
@@ -65,7 +65,7 @@ LOC  OBJ            LINE     SOURCE
                 +1    50     PUBLIC SEND_DECIMAL
                 +1    51     PUBLIC SEND_HEX
                 +1    52     PUBLIC NIBBLE_TO_ASCII
-A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 18:19:08 PAGE     2
+A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 18:44:26 PAGE     2
 
                 +1    53     PUBLIC SEND_TIMER0_HEX
                 +1    54     PUBLIC SEND_STRING
@@ -133,7 +133,7 @@ LOC  OBJ            LINE     SOURCE
 006D E58A       +1   116         MOV A, TL0
 006F FD         +1   117         MOV R5, A
 0070 1151       +1   118         ACALL SEND_HEX
-A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 18:19:08 PAGE     3
+A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 18:44:26 PAGE     3
 
 0072 22         +1   119         RET
                 +1   120     
@@ -166,7 +166,7 @@ LOC  OBJ            LINE     SOURCE
                 +1   147     
                 +1   148     
 0087            +1   149     WAIT_RISE:
-0087 2090A9     +1   150         JB   US_ECHO_R, GOT_ECHO
+0087 2090AB     +1   150         JB   US_ECHO_R, GOT_ECHO
 008A D8FB       +1   151         DJNZ  R0, WAIT_RISE
 008C D9F9       +1   152         DJNZ  R1, WAIT_RISE
                 +1   153     
@@ -198,44 +198,47 @@ LOC  OBJ            LINE     SOURCE
 000B 758C00          179         MOV TH0, #00h
                      180     
 000E 112E            181         ACALL UART_INIT       ; Initialize UART
-0010 C2A0            182         CLR LED_FAR_1
-0012 C2A4            183         CLR LED_FAR_2
-0014 C2A1            184         CLR LED_MID_1
-A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 18:19:08 PAGE     4
+                     182     
+0010 C2A0            183         CLR LED_FAR_1
+0012 C2A4            184         CLR LED_FAR_2
+A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 18:44:26 PAGE     4
 
-0016 C2A3            185         CLR LED_MID_2
-0018 C2A2            186         CLR LED_CLOSE
-001A C291            187         CLR US_TRIG_R
-001C C290            188         CLR US_ECHO_R
-                     189         
-                     190         ;send start string
-001E 900008          191         MOV DPTR,#MSG_START
-0021 1173            192         ACALL SEND_STRING
-                     193     
-0023                 194     MAIN_TOGGLE:
-                     195         ; Send TRIG pulse
-0023 D291            196         SETB US_TRIG_R
-0025 1119            197         ACALL DELAY_10US
-0027 C291            198         CLR  US_TRIG_R
-                     199     
-0029 117E            200     ACALL WAIT_ECHO_HIGH
-002B 1187            201     ACALL WAIT_RISE
+0014 C2A1            185         CLR LED_MID_1
+0016 C2A3            186         CLR LED_MID_2
+0018 C2A2            187         CLR LED_CLOSE
+001A C291            188         CLR US_TRIG_R
+001C C290            189         CLR US_ECHO_R
+                     190         
+001E D2A2            191         SETB LED_CLOSE
+                     192         
+                     193         ;send start string
+0020 900008          194         MOV DPTR,#MSG_START
+0023 1173            195         ACALL SEND_STRING
+                     196     
+0025                 197     MAIN_TOGGLE:
+                     198         ; Send TRIG pulse
+0025 D291            199         SETB US_TRIG_R
+0027 1119            200         ACALL DELAY_10US
+0029 C291            201         CLR  US_TRIG_R
                      202     
-002D                 203     NO_ECHO:
-002D C28C            204         CLR TR0
-002F C2A2            205         CLR LED_CLOSE
-0031 80F0            206         SJMP MAIN_TOGGLE
-                     207     
-0033                 208     GOT_ECHO:
-0033 118E            209         ACALL WAIT_ECHO_LOW
-                     210         ; Reset Timer0 for next round
-0035 758A00          211         MOV TL0, #00h
-0038 758C00          212         MOV TH0, #00h
-                     213     
-003B 80E6            214         SJMP MAIN_TOGGLE
-                     215     
-                     216     END
-A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 18:19:08 PAGE     5
+002B 117E            203     ACALL WAIT_ECHO_HIGH
+002D 1187            204     ACALL WAIT_RISE
+                     205     
+002F                 206     NO_ECHO:
+002F C28C            207         CLR TR0
+0031 C2A2            208         CLR LED_CLOSE
+0033 80F0            209         SJMP MAIN_TOGGLE
+                     210     
+0035                 211     GOT_ECHO:
+0035 118E            212         ACALL WAIT_ECHO_LOW
+                     213         ; Reset Timer0 for next round
+0037 758A00          214         MOV TL0, #00h
+003A 758C00          215         MOV TH0, #00h
+                     216     
+003D 80E6            217         SJMP MAIN_TOGGLE
+                     218     
+                     219     END
+A51 MACRO ASSEMBLER  MAIN                                                                 05/23/2025 18:44:26 PAGE     5
 
 SYMBOL TABLE LISTING
 ------ ----- -------
@@ -247,7 +250,7 @@ B. . . . . . . . .  D ADDR   00F0H   A
 DELAY_10US . . . .  C ADDR   0019H   A   
 DELAY_500US. . . .  C ADDR   0024H   A   
 DONE_STRING. . . .  C ADDR   007DH   A   
-GOT_ECHO . . . . .  C ADDR   0033H   A   
+GOT_ECHO . . . . .  C ADDR   0035H   A   
 L1 . . . . . . . .  C ADDR   0026H   A   
 L2 . . . . . . . .  C ADDR   0028H   A   
 LED_CLOSE. . . . .  B ADDR   00A0H.2 A   
@@ -255,11 +258,11 @@ LED_FAR_1. . . . .  B ADDR   00A0H.0 A
 LED_FAR_2. . . . .  B ADDR   00A0H.4 A   
 LED_MID_1. . . . .  B ADDR   00A0H.1 A   
 LED_MID_2. . . . .  B ADDR   00A0H.3 A   
-MAIN_TOGGLE. . . .  C ADDR   0023H   A   
+MAIN_TOGGLE. . . .  C ADDR   0025H   A   
 MSG_PULSE. . . . .  C ADDR   0000H   A   
 MSG_START. . . . .  C ADDR   0008H   A   
 NIBBLE_TO_ASCII. .  C ADDR   0060H   A   
-NO_ECHO. . . . . .  C ADDR   002DH   A   
+NO_ECHO. . . . . .  C ADDR   002FH   A   
 OK_ASCII . . . . .  C ADDR   0067H   A   
 P1 . . . . . . . .  D ADDR   0090H   A   
 P2 . . . . . . . .  D ADDR   00A0H   A   

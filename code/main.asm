@@ -33,6 +33,7 @@ START:
     MOV TH0, #00h
 
     ACALL UART_INIT       ; Initialize UART
+
     CLR LED_FAR_1
     CLR LED_FAR_2
     CLR LED_MID_1
@@ -40,6 +41,8 @@ START:
     CLR LED_CLOSE
     CLR US_TRIG_R
     CLR US_ECHO_R
+    
+    SETB LED_CLOSE
     
     ;send start string
     MOV DPTR,#MSG_START

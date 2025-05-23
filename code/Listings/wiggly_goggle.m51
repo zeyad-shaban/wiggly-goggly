@@ -1,4 +1,4 @@
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                    05/23/2025  18:19:08  PAGE 1
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                    05/23/2025  18:44:26  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V6.22.4.0, INVOKED BY:
@@ -44,7 +44,7 @@ SYMBOL TABLE OF MODULE:  .\Objects\wiggly_goggle (MAIN)
   C:008EH         PUBLIC        WAIT_ECHO_LOW
   C:0087H         PUBLIC        WAIT_RISE
   D:00F0H         SYMBOL        B
-  C:0033H         SYMBOL        GOT_ECHO
+  C:0035H         SYMBOL        GOT_ECHO
   C:0026H         SYMBOL        L1
   C:0028H         SYMBOL        L2
   B:00A0H.2       SYMBOL        LED_CLOSE
@@ -52,14 +52,14 @@ SYMBOL TABLE OF MODULE:  .\Objects\wiggly_goggle (MAIN)
   B:00A0H.4       SYMBOL        LED_FAR_2
   B:00A0H.1       SYMBOL        LED_MID_1
   B:00A0H.3       SYMBOL        LED_MID_2
-  C:0023H         SYMBOL        MAIN_TOGGLE
+  C:0025H         SYMBOL        MAIN_TOGGLE
   C:0000H         SYMBOL        MSG_PULSE
   C:0008H         SYMBOL        MSG_START
-  C:002DH         SYMBOL        NO_ECHO
+  C:002FH         SYMBOL        NO_ECHO
   C:0067H         SYMBOL        OK_ASCII
   D:0090H         SYMBOL        P1
   D:00A0H         SYMBOL        P2
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/23/2025  18:19:08  PAGE 2
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/23/2025  18:44:26  PAGE 2
 
 
   D:0099H         SYMBOL        SBUF
@@ -83,31 +83,32 @@ SYMBOL TABLE OF MODULE:  .\Objects\wiggly_goggle (MAIN)
   C:0008H         LINE#         32
   C:000BH         LINE#         33
   C:000EH         LINE#         35
-  C:0010H         LINE#         36
-  C:0012H         LINE#         37
-  C:0014H         LINE#         38
-  C:0016H         LINE#         39
-  C:0018H         LINE#         40
-  C:001AH         LINE#         41
-  C:001CH         LINE#         42
+  C:0010H         LINE#         37
+  C:0012H         LINE#         38
+  C:0014H         LINE#         39
+  C:0016H         LINE#         40
+  C:0018H         LINE#         41
+  C:001AH         LINE#         42
+  C:001CH         LINE#         43
   C:001EH         LINE#         45
-  C:0021H         LINE#         46
-  C:0023H         LINE#         50
-  C:0025H         LINE#         51
-  C:0027H         LINE#         52
-  C:0029H         LINE#         54
-  C:002BH         LINE#         55
+  C:0020H         LINE#         48
+  C:0023H         LINE#         49
+  C:0025H         LINE#         53
+  C:0027H         LINE#         54
+  C:0029H         LINE#         55
+  C:002BH         LINE#         57
   C:002DH         LINE#         58
-  C:002FH         LINE#         59
-  C:0031H         LINE#         60
+  C:002FH         LINE#         61
+  C:0031H         LINE#         62
   C:0033H         LINE#         63
-  C:0035H         LINE#         65
-  C:0038H         LINE#         66
-  C:003BH         LINE#         68
+  C:0035H         LINE#         66
+  C:0037H         LINE#         68
+  C:003AH         LINE#         69
+  C:003DH         LINE#         71
   -------         ENDMOD        MAIN
 
 ******************************************************************************
-* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00E1H BYTE (10%) *
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 00E3H BYTE (11%) *
 ******************************************************************************
 
 Program Size: data=8.0 xdata=0 code=164
