@@ -1,0 +1,278 @@
+A51 MACRO ASSEMBLER  TIMERS                                                               05/23/2025 17:18:44 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.2.7.0
+OBJECT MODULE PLACED IN .\Objects\Timers.obj
+ASSEMBLER INVOKED BY: C:\Keil_v5\C51\BIN\A51.EXE Timers.asm SET(SMALL) DEBUG PRINT(.\Listings\Timers.lst) OBJECT(.\Objec
+                      ts\Timers.obj) EP
+
+LOC  OBJ            LINE     SOURCE
+
+                       1     ;----------------------------------------------------------
+                       2     ; Project: Ultrasonic Echo Timer Measurement
+                       3     ; Clock  : 11.0592 MHz
+                       4     ; UART   : 9600 baud
+                       5     ; UART output = raw TH0/TL0 count of ECHO pulse width
+                       6     ;----------------------------------------------------------
+                       7     
+  0091                 8     US_TRIG_R   EQU  P1.1    ; Right Trigger pin
+  0090                 9     US_ECHO_R   EQU  P1.0    ; Right Echo pin
+  00A0                10     LED_FAR_1   EQU  P2.0
+  00A4                11     LED_FAR_2   EQU  P2.4
+  00A1                12     LED_MID_1   EQU  P2.1
+  00A3                13     LED_MID_2   EQU  P2.3
+  00A2                14     LED_CLOSE   EQU  P2.2
+                      15     
+0000                  16     ORG 0000h
+0000 020067           17     LJMP START 
+                      18     
+                      19     ;=======================
+                      20     ; UART Initialization
+0003                  21     UART_INIT:
+0003 758DFD           22         MOV TH1, #0FDH       ; Baud = 9600
+0006 758BFD           23         MOV TL1, #0FDH
+0009 759850           24         MOV SCON, #50H       ; 8-bit UART, REN enabled
+000C D28E             25         SETB TR1
+000E 22               26         RET
+                      27     
+                      28     ;=======================
+                      29     ; UART Send Byte (in A)
+000F                  30     UART_SEND:
+000F F599             31         MOV SBUF, A
+0011                  32     WAIT_SEND:
+0011 3099FD           33         JNB TI, WAIT_SEND
+0014 C299             34         CLR TI
+0016 22               35         RET
+                      36     
+                      37     ;=======================
+                      38     ; SEND_DECIMAL: Converts A to 2-digit ASCII
+0017                  39     SEND_DECIMAL:
+0017 75F00A           40         MOV B, #10
+001A 84               41         DIV AB
+001B 2430             42         ADD A, #'0'
+001D 110F             43         ACALL UART_SEND
+001F E5F0             44         MOV A, B
+0021 2430             45         ADD A, #'0'
+0023 110F             46         ACALL UART_SEND
+0025 22               47         RET
+                      48     
+                      49     ;=======================
+                      50     ; SEND_HEX: Send A as 2-digit HEX
+0026                  51     SEND_HEX:
+0026 C4               52         SWAP A                ; High nibble first
+0027 540F             53         ANL A, #0Fh
+0029 1135             54         ACALL NIBBLE_TO_ASCII
+002B 110F             55         ACALL UART_SEND
+                      56     
+002D ED               57         MOV A, R5             ; Restore original
+A51 MACRO ASSEMBLER  TIMERS                                                               05/23/2025 17:18:44 PAGE     2
+
+002E 540F             58         ANL A, #0Fh
+0030 1135             59         ACALL NIBBLE_TO_ASCII
+0032 110F             60         ACALL UART_SEND
+0034 22               61         RET
+                      62     
+                      63     ; Convert nibble in A to ASCII
+0035                  64     NIBBLE_TO_ASCII:
+0035 2430             65         ADD A, #'0'
+0037 B43A02           66         CJNE A, #'9'+1, OK_ASCII
+003A 2407             67         ADD A, #7            ; for A-F
+003C                  68     OK_ASCII:
+003C 22               69         RET
+                      70     
+                      71     ;=======================
+                      72     ; Delay ≈ 500 µs
+003D                  73     DELAY_500US:
+003D 7A05             74         MOV R2, #5
+003F 7B28             75     L1: MOV R3, #40
+0041 00               76     L2: NOP
+0042 DBFD             77         DJNZ R3, L2
+0044 DAF9             78         DJNZ R2, L1
+0046 22               79         RET
+                      80     
+                      81     ;=======================
+                      82     ; Send 16-bit Timer0 value in HEX
+0047                  83     SEND_TIMER0_HEX:
+0047 E58C             84         MOV A, TH0
+0049 FD               85         MOV R5, A
+004A 1126             86         ACALL SEND_HEX
+004C E58A             87         MOV A, TL0
+004E FD               88         MOV R5, A
+004F 1126             89         ACALL SEND_HEX
+0051 22               90         RET
+                      91     
+                      92     ;=======================
+                      93     ; UART Send String in DPTR
+0052                  94     SEND_STRING:
+0052 E4               95         CLR A
+0053 93               96         MOVC A, @A+DPTR
+0054 6005             97         JZ DONE_STRING
+0056 110F             98         ACALL UART_SEND
+0058 A3               99         INC DPTR
+0059 80F7            100         SJMP SEND_STRING
+005B                 101     DONE_STRING:
+005B 22              102         RET
+                     103     
+                     104     ;----------------------------------------------------------
+                     105     ; Delay ≈10 µs
+005C                 106     DELAY_10US:
+005C 00              107         NOP
+005D 00              108         NOP
+005E 00              109         NOP
+005F 00              110         NOP
+0060 00              111         NOP
+0061 00              112         NOP
+0062 00              113         NOP
+0063 00              114         NOP
+0064 00              115         NOP
+0065 00              116         NOP
+0066 22              117         RET
+                     118     
+                     119     ;----------------------------------------------------------
+                     120     ; START
+0067                 121     START:
+0067 758921          122         MOV TMOD, #21H       ; Timer1 Mode 2 (for UART), Timer0 Mode 1
+006A C28C            123         CLR TR0               ; Ensure Timer0 OFF
+A51 MACRO ASSEMBLER  TIMERS                                                               05/23/2025 17:18:44 PAGE     3
+
+                     124         ; Reset Timer0 for next round
+006C 758A00          125         MOV TL0, #00h
+006F 758C00          126         MOV TH0, #00h
+                     127     
+0072 1103            128         ACALL UART_INIT       ; Initialize UART
+0074 C2A0            129         CLR LED_FAR_1
+0076 C2A4            130         CLR LED_FAR_2
+0078 C2A1            131         CLR LED_MID_1
+007A C2A3            132         CLR LED_MID_2
+007C C2A2            133         CLR LED_CLOSE
+007E C291            134         CLR US_TRIG_R
+0080 C290            135         CLR US_ECHO_R
+                     136         
+                     137         ;send start string
+0082 9000CD          138         MOV DPTR,#MSG_START
+0085 1152            139         ACALL SEND_STRING
+                     140     
+0087                 141     MAIN_TOGGLE:
+                     142         ; Send TRIG pulse
+0087 D291            143         SETB US_TRIG_R
+0089 115C            144         ACALL DELAY_10US
+008B C291            145         CLR  US_TRIG_R
+                     146     
+008D                 147     WAIT_ECHO_HIGH:
+008D 3090FD          148         JNB   US_ECHO_R, WAIT_ECHO_HIGH
+0090 C28D            149         CLR  TF0
+0092 C28C            150         CLR  TR0
+                     151     
+                     152         ; Start Timer0
+0094 D28C            153         SETB TR0
+                     154     
+                     155     
+0096                 156     WAIT_RISE:
+0096 20900E          157         JB   US_ECHO_R, GOT_ECHO
+0099 D8FB            158         DJNZ  R0, WAIT_RISE
+009B D9F9            159         DJNZ  R1, WAIT_RISE
+009D 8002            160         SJMP  NO_ECHO
+                     161     
+009F D2A2            162     SETB LED_CLOSE
+                     163     
+00A1                 164     NO_ECHO:
+00A1 C28C            165         CLR TR0
+00A3 C2A2            166         CLR LED_CLOSE
+00A5 80E0            167         SJMP MAIN_TOGGLE
+                     168     
+00A7                 169     GOT_ECHO:
+00A7                 170     WAIT_ECHO_LOW:
+00A7 2090FD          171         JB   US_ECHO_R, WAIT_ECHO_LOW
+00AA C28D            172         CLR  TF0
+00AC C28C            173         CLR  TR0
+                     174     
+                     175         ; -----------------------------
+                     176         ; Print "Pulse: " and Timer0
+                     177         ; -----------------------------
+00AE 9000C5          178         MOV DPTR, #MSG_PULSE
+00B1 1152            179         ACALL SEND_STRING
+00B3 1147            180         ACALL SEND_TIMER0_HEX
+00B5 740D            181         MOV A, #13
+00B7 110F            182         ACALL UART_SEND
+00B9 740A            183         MOV A, #10
+00BB 110F            184         ACALL UART_SEND
+                     185     
+                     186     
+                     187         ; Reset Timer0 for next round
+00BD 758A00          188         MOV TL0, #00h
+00C0 758C00          189         MOV TH0, #00h
+A51 MACRO ASSEMBLER  TIMERS                                                               05/23/2025 17:18:44 PAGE     4
+
+                     190     
+                     191     
+00C3 80C2            192         SJMP MAIN_TOGGLE
+                     193     
+                     194     ;----------------------------------------------------------
+                     195     ; Message
+00C5 50756C73        196     MSG_PULSE: DB "Pulse: ", 0
+00C9 653A2000                
+00CD 50726F67        197     MSG_START: DB "Program Starting",0
+00D1 72616D20                
+00D5 53746172                
+00D9 74696E67                
+00DD 00                      
+                     198     
+                     199     END
+A51 MACRO ASSEMBLER  TIMERS                                                               05/23/2025 17:18:44 PAGE     5
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+B. . . . . . . . .  D ADDR   00F0H   A   
+DELAY_10US . . . .  C ADDR   005CH   A   
+DELAY_500US. . . .  C ADDR   003DH   A   
+DONE_STRING. . . .  C ADDR   005BH   A   
+GOT_ECHO . . . . .  C ADDR   00A7H   A   
+L1 . . . . . . . .  C ADDR   003FH   A   
+L2 . . . . . . . .  C ADDR   0041H   A   
+LED_CLOSE. . . . .  B ADDR   00A0H.2 A   
+LED_FAR_1. . . . .  B ADDR   00A0H.0 A   
+LED_FAR_2. . . . .  B ADDR   00A0H.4 A   
+LED_MID_1. . . . .  B ADDR   00A0H.1 A   
+LED_MID_2. . . . .  B ADDR   00A0H.3 A   
+MAIN_TOGGLE. . . .  C ADDR   0087H   A   
+MSG_PULSE. . . . .  C ADDR   00C5H   A   
+MSG_START. . . . .  C ADDR   00CDH   A   
+NIBBLE_TO_ASCII. .  C ADDR   0035H   A   
+NO_ECHO. . . . . .  C ADDR   00A1H   A   
+OK_ASCII . . . . .  C ADDR   003CH   A   
+P1 . . . . . . . .  D ADDR   0090H   A   
+P2 . . . . . . . .  D ADDR   00A0H   A   
+SBUF . . . . . . .  D ADDR   0099H   A   
+SCON . . . . . . .  D ADDR   0098H   A   
+SEND_DECIMAL . . .  C ADDR   0017H   A   
+SEND_HEX . . . . .  C ADDR   0026H   A   
+SEND_STRING. . . .  C ADDR   0052H   A   
+SEND_TIMER0_HEX. .  C ADDR   0047H   A   
+START. . . . . . .  C ADDR   0067H   A   
+TF0. . . . . . . .  B ADDR   0088H.5 A   
+TH0. . . . . . . .  D ADDR   008CH   A   
+TH1. . . . . . . .  D ADDR   008DH   A   
+TI . . . . . . . .  B ADDR   0098H.1 A   
+TL0. . . . . . . .  D ADDR   008AH   A   
+TL1. . . . . . . .  D ADDR   008BH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+TR0. . . . . . . .  B ADDR   0088H.4 A   
+TR1. . . . . . . .  B ADDR   0088H.6 A   
+UART_INIT. . . . .  C ADDR   0003H   A   
+UART_SEND. . . . .  C ADDR   000FH   A   
+US_ECHO_R. . . . .  B ADDR   0090H.0 A   
+US_TRIG_R. . . . .  B ADDR   0090H.1 A   
+WAIT_ECHO_HIGH . .  C ADDR   008DH   A   
+WAIT_ECHO_LOW. . .  C ADDR   00A7H   A   
+WAIT_RISE. . . . .  C ADDR   0096H   A   
+WAIT_SEND. . . . .  C ADDR   0011H   A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)
