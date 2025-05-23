@@ -1,0 +1,33 @@
+PUBLIC WAIT_ECHO_HIGH
+PUBLIC WAIT_RISE
+PUBLIC WAIT_ECHO_LOW
+
+WAIT_ECHO_HIGH:
+    JNB   US_ECHO_R, WAIT_ECHO_HIGH
+    CLR  TF0
+    CLR  TR0
+
+    ; Start Timer0
+    SETB TR0
+
+
+WAIT_RISE:
+    JB   US_ECHO_R, GOT_ECHO
+    DJNZ  R0, WAIT_RISE
+    DJNZ  R1, WAIT_RISE
+
+WAIT_ECHO_LOW:
+        JB   US_ECHO_R, WAIT_ECHO_LOW
+        CLR  TF0
+        CLR  TR0
+
+        ; -----------------------------
+        ; Print "Pulse: " and Timer0
+        ; -----------------------------
+        MOV DPTR, #MSG_PULSE
+        ACALL SEND_STRING
+        ACALL SEND_TIMER0_HEX
+        MOV A, #13
+        ACALL UART_SEND
+        MOV A, #10
+        ACALL UART_SEND

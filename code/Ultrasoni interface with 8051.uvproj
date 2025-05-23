@@ -381,6 +381,21 @@
               <FileType>2</FileType>
               <FilePath>.\main.asm</FilePath>
             </File>
+            <File>
+              <FileName>uart.inc</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\uart.inc</FilePath>
+            </File>
+            <File>
+              <FileName>delay.inc</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\delay.inc</FilePath>
+            </File>
+            <File>
+              <FileName>ultrasonic_logic.inc</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\ultrasonic_logic.inc</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

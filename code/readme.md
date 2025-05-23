@@ -1,33 +1,54 @@
 # MAZEN I SWEAR GIT EXISTS FOR A REASON
-
 # WHY THE HELL DO YOU HAVE A FOLDER FOR PROJECT BACKUPS
 
-# WHY DO WE HAVE 20 RANDOM FILES THERE 
+## About
+8051 Assembly project using [ASEM-51](https://plit.de/asem-51/) assembler running in DOSBox.
 
-using https://plit.de/asem-51/ running in DosBox
+## Setup & Running
+1. Open DOSBox and run the following commands:
+```bash
+# For Mazen
+mount C E:\Mazen_Belal\projects\MicroProcessors\wiggly-goggly\code
 
-# running steps for DOSBox
-1. open DosBox and run following
-    for mazen:
-        mount C E:\Mazen_Belal\projects\MicroProcessors\wiggly-goggly\code
-    for zeyad:
-        mount C E:\workspace\wiggly_goggly\code
-    C:
-    cd asem5113
-    asem.exe ..\main.asm ..\main.hex    
+# For Zeyad
+mount C E:\workspace\wiggly_goggly\code
 
+# Navigate and compile
+C:
+cd asem5113
+asem.exe ..\main.asm ..\main.hex
+```
 
-You need to load library for the ultrasonic sensor to work.. uh someone provide link here please ;-;
-Project documentation:
-Distance (cm) = echo (microSec) / 58 
-distance * 58 = echo
+## Project Documentation
 
-RED < 10 (yellow) < 20 (green)git
+### Distance Calculation
+- Formula: Distance (cm) = echo (microSec) / 58
+- Or: echo = distance * 58
 
+### LED Indicators
+| Color  | Distance Range |
+|--------|---------------|
+| Red    | < 10 cm      |
+| Yellow | 10-20 cm     |
+| Green  | > 20 cm      |
 
+### Timing Details
+Regarding WAIT_FALL_16 timing:
+- Each loop takes 3 µs
+- Target range: 200 cm
+- Calculation: 3 * x / 58 = 200
+- Result: x = 200 * 58 / 3 = 3866
 
+## Development Notes
 
-Regarind WAIT_FALL_16 philosophy:
-    each loop is 3 µs
-    aiming for 200 cm, 3 * x / 58 = 200
-    x = 200 * 58 / 3 = 3866
+### File Imports
+To make files importable:
+1. Create a `.inc` file for the code you want to include
+2. In the `.inc` files, expose functions using:
+   ```assembly
+   PUBLIC function_name
+   ```
+3. Import in main.asm using:
+   ```assembly
+   $INCLUDE (delay.inc)
+   ```

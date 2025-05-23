@@ -1,0 +1,9 @@
+{
+    "files.exclude": {
+        "**/*Ultrasoni interface with 8051*": true,
+        "**/*Project Backups*": true,
+        "**/*proteus_libraries": true,
+        "**/*.workspace": true,
+        
+    },
+}

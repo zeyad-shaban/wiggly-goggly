@@ -1,0 +1,24 @@
+PUBLIC DELAY_10US
+PUBLIC DELAY_500US
+
+DELAY_10US:
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    NOP
+    RET
+
+
+DELAY_500US:
+    MOV R2, #5
+    L1: MOV R3, #40
+    L2: NOP
+    DJNZ R3, L2
+    DJNZ R2, L1
+    RET
