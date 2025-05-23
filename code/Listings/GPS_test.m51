@@ -1,4 +1,4 @@
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                    05/21/2025  14:11:21  PAGE 1
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                    05/21/2025  14:27:47  PAGE 1
 
 
 BL51 BANKED LINKER/LOCATER V6.22.4.0, INVOKED BY:
@@ -13,6 +13,7 @@ INPUT MODULES INCLUDED:
   .\Objects\find_distance.obj (FIND_DISTANCE)
   .\Objects\LCD_8_bit.obj (LCD_8_BIT)
   C:\KEIL_V5\C51\LIB\C51FPS.LIB (?C?FPMUL)
+  C:\KEIL_V5\C51\LIB\C51FPS.LIB (?C?FPDIV)
   C:\KEIL_V5\C51\LIB\C51FPS.LIB (?C?FCAST)
   C:\KEIL_V5\C51\LIB\C51FPS.LIB (PRINTF)
   C:\KEIL_V5\C51\LIB\C51FPS.LIB (POW)
@@ -26,7 +27,6 @@ INPUT MODULES INCLUDED:
   C:\KEIL_V5\C51\LIB\C51FPS.LIB (?C?FPCONVERT)
   C:\KEIL_V5\C51\LIB\C51FPS.LIB (EXP)
   C:\KEIL_V5\C51\LIB\C51FPS.LIB (LOG)
-  C:\KEIL_V5\C51\LIB\C51FPS.LIB (?C?FPDIV)
   C:\KEIL_V5\C51\LIB\C51FPS.LIB (?C?FTNPWR)
   C:\KEIL_V5\C51\LIB\C51FPS.LIB (?C?FPSERIES)
   C:\KEIL_V5\C51\LIB\C51S.LIB (?C_STARTUP)
@@ -59,26 +59,26 @@ LINK MAP OF MODULE:  .\Objects\GPS_test (FIND_DISTANCE)
             CODE    0000H     0003H     ABSOLUTE     
                     0003H     07FDH                  *** GAP ***
             CODE    0800H     06ACH     UNIT         ?C?LIB_CODE
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:11:21  PAGE 2
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:27:47  PAGE 2
 
 
             CODE    0EACH     046FH     UNIT         ?PR?PRINTF?PRINTF
             CODE    131BH     0135H     UNIT         ?PR?LOG?LOG
             CODE    1450H     0117H     UNIT         ?PR?_POW?POW
-            CODE    1567H     009AH     UNIT         ?PR?EXP?EXP
-            CODE    1601H     0096H     UNIT         ?PR?MAIN?FIND_DISTANCE
-            CODE    1697H     002FH     UNIT         ?PR?_LCD_STRING_XY?LCD_8_BIT
-            CODE    16C6H     002BH     UNIT         ?PR?_LCD_STRING?LCD_8_BIT
-            CODE    16F1H     0028H     UNIT         ?PR?_DELAY?LCD_8_BIT
-            CODE    1719H     0027H     UNIT         ?PR?PUTCHAR?PUTCHAR
-            CODE    1740H     0020H     UNIT         ?PR?LCD_INIT?LCD_8_BIT
-            CODE    1760H     0015H     UNIT         ?CO?FIND_DISTANCE
-            CODE    1775H     0010H     UNIT         ?PR?DELAY_US?FIND_DISTANCE
-            CODE    1785H     000EH     UNIT         ?PR?_LCD_COMMAND?LCD_8_BIT
-            CODE    1793H     000EH     UNIT         ?PR?_LCD_CHAR?LCD_8_BIT
-            CODE    17A1H     000CH     UNIT         ?C_C51STARTUP
-            CODE    17ADH     0008H     UNIT         ?PR?INIT_TIMER?FIND_DISTANCE
-            CODE    17B5H     0008H     UNIT         ?PR?SEND_TRIGGER_PULSE?FIND_DISTANCE
+            CODE    1567H     00BAH     UNIT         ?PR?MAIN?FIND_DISTANCE
+            CODE    1621H     009AH     UNIT         ?PR?EXP?EXP
+            CODE    16BBH     002FH     UNIT         ?PR?_LCD_STRING_XY?LCD_8_BIT
+            CODE    16EAH     002BH     UNIT         ?PR?_LCD_STRING?LCD_8_BIT
+            CODE    1715H     0028H     UNIT         ?PR?_DELAY?LCD_8_BIT
+            CODE    173DH     0027H     UNIT         ?PR?PUTCHAR?PUTCHAR
+            CODE    1764H     0020H     UNIT         ?PR?LCD_INIT?LCD_8_BIT
+            CODE    1784H     0015H     UNIT         ?CO?FIND_DISTANCE
+            CODE    1799H     0010H     UNIT         ?PR?DELAY_US?FIND_DISTANCE
+            CODE    17A9H     000EH     UNIT         ?PR?_LCD_COMMAND?LCD_8_BIT
+            CODE    17B7H     000EH     UNIT         ?PR?_LCD_CHAR?LCD_8_BIT
+            CODE    17C5H     000CH     UNIT         ?C_C51STARTUP
+            CODE    17D1H     0008H     UNIT         ?PR?INIT_TIMER?FIND_DISTANCE
+            CODE    17D9H     0008H     UNIT         ?PR?SEND_TRIGGER_PULSE?FIND_DISTANCE
 
 
 
@@ -119,7 +119,7 @@ SEGMENT                                         BIT_GROUP          DATA_GROUP
 ?PR?_LCD_CHAR?LCD_8_BIT                      -----    -----      -----    -----
   +--> ?PR?_DELAY?LCD_8_BIT
 
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:11:21  PAGE 3
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:27:47  PAGE 3
 
 
 ?PR?SEND_TRIGGER_PULSE?FIND_DISTANCE         -----    -----      -----    -----
@@ -148,15 +148,15 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (FIND_DISTANCE)
   D:00A0H         PUBLIC        P2
   D:00B0H         PUBLIC        P3
   D:00A8H         PUBLIC        IE
-  C:17B5H         PUBLIC        send_trigger_pulse
+  C:17D9H         PUBLIC        send_trigger_pulse
   D:00B8H         PUBLIC        IP
-  C:1601H         PUBLIC        main
+  C:1567H         PUBLIC        main
   B:00A0H.7       PUBLIC        Echo_pin
   D:0098H         PUBLIC        SCON
   D:0089H         PUBLIC        TMOD
   D:0088H         PUBLIC        TCON
-  C:17ADH         PUBLIC        init_timer
-  C:1775H         PUBLIC        Delay_us
+  C:17D1H         PUBLIC        init_timer
+  C:1799H         PUBLIC        Delay_us
   B:0088H.5       PUBLIC        TF0
   D:008CH         PUBLIC        TH0
   D:008AH         PUBLIC        TL0
@@ -164,32 +164,32 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (FIND_DISTANCE)
   D:00C8H         PUBLIC        T2CON
   D:00D0H         PUBLIC        PSW
   -------         PROC          DELAY_US
-  C:1775H         LINE#         18
-  C:1775H         LINE#         19
-  C:1775H         LINE#         20
-  C:1778H         LINE#         21
-  C:177BH         LINE#         22
-  C:177DH         LINE#         23
-  C:1780H         LINE#         24
-  C:1782H         LINE#         25
-  C:1784H         LINE#         26
+  C:1799H         LINE#         18
+  C:1799H         LINE#         19
+  C:1799H         LINE#         20
+  C:179CH         LINE#         21
+  C:179FH         LINE#         22
+  C:17A1H         LINE#         23
+  C:17A4H         LINE#         24
+  C:17A6H         LINE#         25
+  C:17A8H         LINE#         26
   -------         ENDPROC       DELAY_US
   -------         PROC          INIT_TIMER
-  C:17ADH         LINE#         28
-  C:17ADH         LINE#         29
-  C:17B0H         LINE#         30
-  C:17B2H         LINE#         31
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:11:21  PAGE 4
+  C:17D1H         LINE#         28
+  C:17D1H         LINE#         29
+  C:17D4H         LINE#         30
+  C:17D6H         LINE#         31
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:27:47  PAGE 4
 
 
-  C:17B4H         LINE#         32
+  C:17D8H         LINE#         32
   -------         ENDPROC       INIT_TIMER
   -------         PROC          SEND_TRIGGER_PULSE
-  C:17B5H         LINE#         34
-  C:17B5H         LINE#         35
-  C:17B7H         LINE#         36
-  C:17BAH         LINE#         37
-  C:17BCH         LINE#         38
+  C:17D9H         LINE#         34
+  C:17D9H         LINE#         35
+  C:17DBH         LINE#         36
+  C:17DEH         LINE#         37
+  C:17E0H         LINE#         38
   -------         ENDPROC       SEND_TRIGGER_PULSE
   -------         PROC          MAIN
   -------         DO            
@@ -197,51 +197,52 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (FIND_DISTANCE)
   D:0026H         SYMBOL        value
   D:002AH         SYMBOL        distance_in_cm
   -------         ENDDO         
-  C:1601H         LINE#         40
-  C:1601H         LINE#         41
-  C:1601H         LINE#         44
-  C:1604H         LINE#         45
-  C:1611H         LINE#         46
-  C:1614H         LINE#         48
-  C:1614H         LINE#         49
-  C:1614H         LINE#         50
-  C:1617H         LINE#         52
-  C:161AH         LINE#         53
-  C:161CH         LINE#         54
-  C:1622H         LINE#         55
-  C:1624H         LINE#         58
-  C:164BH         LINE#         59
-  C:165DH         LINE#         62
-  C:1677H         LINE#         63
-  C:1684H         LINE#         64
-  C:168DH         LINE#         66
-  C:1694H         LINE#         67
+  C:1567H         LINE#         40
+  C:1567H         LINE#         41
+  C:1567H         LINE#         44
+  C:156AH         LINE#         45
+  C:1577H         LINE#         46
+  C:157AH         LINE#         48
+  C:157AH         LINE#         49
+  C:157AH         LINE#         50
+  C:157DH         LINE#         52
+  C:1580H         LINE#         53
+  C:1582H         LINE#         54
+  C:1588H         LINE#         55
+  C:158AH         LINE#         58
+  C:15B1H         LINE#         59
+  C:15C3H         LINE#         60
+  C:15E7H         LINE#         62
+  C:1601H         LINE#         63
+  C:160EH         LINE#         64
+  C:1617H         LINE#         66
+  C:161EH         LINE#         67
   -------         ENDPROC       MAIN
   -------         ENDMOD        FIND_DISTANCE
 
   -------         MODULE        LCD_8_BIT
   C:0000H         SYMBOL        _ICE_DUMMY_
   D:0090H         PUBLIC        P1
-  C:1697H         PUBLIC        _LCD_String_xy
+  C:16BBH         PUBLIC        _LCD_String_xy
   D:00A0H         PUBLIC        P2
   D:00B0H         PUBLIC        P3
   D:00A8H         PUBLIC        IE
-  C:16F9H         PUBLIC        _delay
+  C:171DH         PUBLIC        _delay
   B:00A0H.2       PUBLIC        EN
   D:00B8H         PUBLIC        IP
   B:00A0H.0       PUBLIC        RS
   B:00A0H.1       PUBLIC        RW
-  C:16C6H         PUBLIC        _LCD_String
-  C:1793H         PUBLIC        _LCD_Char
+  C:16EAH         PUBLIC        _LCD_String
+  C:17B7H         PUBLIC        _LCD_Char
   D:0098H         PUBLIC        SCON
   D:0088H         PUBLIC        TCON
-  C:1740H         PUBLIC        LCD_Init
+  C:1764H         PUBLIC        LCD_Init
   D:00C8H         PUBLIC        T2CON
-  C:1785H         PUBLIC        _LCD_Command
+  C:17A9H         PUBLIC        _LCD_Command
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:27:47  PAGE 5
+
+
   D:00D0H         PUBLIC        PSW
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:11:21  PAGE 5
-
-
   -------         PROC          L?0023
   -------         ENDPROC       L?0023
   -------         PROC          _DELAY
@@ -250,73 +251,73 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (FIND_DISTANCE)
   D:0004H         SYMBOL        i
   D:0002H         SYMBOL        j
   -------         ENDDO         
-  C:16F9H         LINE#         17
-  C:16F9H         LINE#         18
-  C:16F9H         LINE#         20
-  C:1703H         LINE#         21
-  C:1718H         LINE#         22
+  C:171DH         LINE#         17
+  C:171DH         LINE#         18
+  C:171DH         LINE#         20
+  C:1727H         LINE#         21
+  C:173CH         LINE#         22
   -------         ENDPROC       _DELAY
   -------         PROC          _LCD_COMMAND
   D:0007H         SYMBOL        Command
-  C:1785H         LINE#         24
-  C:1785H         LINE#         25
-  C:1785H         LINE#         26
-  C:1787H         LINE#         27
-  C:1789H         LINE#         28
-  C:1789H         LINE#         29
-  C:1789H         LINE#         30
-  C:178CH         LINE#         31
-  C:178EH         LINE#         32
+  C:17A9H         LINE#         24
+  C:17A9H         LINE#         25
+  C:17A9H         LINE#         26
+  C:17ABH         LINE#         27
+  C:17ADH         LINE#         28
+  C:17ADH         LINE#         29
+  C:17ADH         LINE#         30
+  C:17B0H         LINE#         31
+  C:17B2H         LINE#         32
   -------         ENDPROC       _LCD_COMMAND
   -------         PROC          _LCD_CHAR
   D:0007H         SYMBOL        Data
-  C:1793H         LINE#         34
-  C:1793H         LINE#         35
-  C:1793H         LINE#         36
-  C:1795H         LINE#         37
-  C:1797H         LINE#         38
-  C:1797H         LINE#         39
-  C:1797H         LINE#         40
-  C:179AH         LINE#         41
-  C:179CH         LINE#         42
+  C:17B7H         LINE#         34
+  C:17B7H         LINE#         35
+  C:17B7H         LINE#         36
+  C:17B9H         LINE#         37
+  C:17BBH         LINE#         38
+  C:17BBH         LINE#         39
+  C:17BBH         LINE#         40
+  C:17BEH         LINE#         41
+  C:17C0H         LINE#         42
   -------         ENDPROC       _LCD_CHAR
   -------         PROC          _LCD_STRING
   D:0039H         SYMBOL        str
   -------         DO            
   D:003CH         SYMBOL        i
   -------         ENDDO         
-  C:16C6H         LINE#         45
-  C:16CCH         LINE#         46
-  C:16CCH         LINE#         48
-  C:16E3H         LINE#         49
-  C:16E3H         LINE#         50
-  C:16E6H         LINE#         51
-  C:16F0H         LINE#         52
+  C:16EAH         LINE#         45
+  C:16F0H         LINE#         46
+  C:16F0H         LINE#         48
+  C:1707H         LINE#         49
+  C:1707H         LINE#         50
+  C:170AH         LINE#         51
+  C:1714H         LINE#         52
   -------         ENDPROC       _LCD_STRING
   -------         PROC          _LCD_STRING_XY
   D:0034H         SYMBOL        row
   D:0035H         SYMBOL        pos
   D:0036H         SYMBOL        str
-  C:1697H         LINE#         54
-  C:16A1H         LINE#         55
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:11:21  PAGE 6
+  C:16BBH         LINE#         54
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:27:47  PAGE 6
 
 
-  C:16A1H         LINE#         56
-  C:16A6H         LINE#         57
-  C:16AEH         LINE#         58
-  C:16B3H         LINE#         59
-  C:16BDH         LINE#         60
+  C:16C5H         LINE#         55
+  C:16C5H         LINE#         56
+  C:16CAH         LINE#         57
+  C:16D2H         LINE#         58
+  C:16D7H         LINE#         59
+  C:16E1H         LINE#         60
   -------         ENDPROC       _LCD_STRING_XY
   -------         PROC          LCD_INIT
-  C:1740H         LINE#         63
-  C:1740H         LINE#         64
-  C:1740H         LINE#         65
-  C:1747H         LINE#         66
-  C:174CH         LINE#         67
-  C:1751H         LINE#         68
-  C:1756H         LINE#         69
-  C:175BH         LINE#         70
+  C:1764H         LINE#         63
+  C:1764H         LINE#         64
+  C:1764H         LINE#         65
+  C:176BH         LINE#         66
+  C:1770H         LINE#         67
+  C:1775H         LINE#         68
+  C:177AH         LINE#         69
+  C:177FH         LINE#         70
   -------         ENDPROC       LCD_INIT
   -------         ENDMOD        LCD_8_BIT
 
@@ -324,10 +325,14 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (FIND_DISTANCE)
   C:0800H         PUBLIC        ?C?FPMUL
   -------         ENDMOD        ?C?FPMUL
 
+  -------         MODULE        ?C?FPDIV
+  C:0909H         PUBLIC        ?C?FPDIV
+  -------         ENDMOD        ?C?FPDIV
+
   -------         MODULE        ?C?FCAST
-  C:0910H         PUBLIC        ?C?FCASTC
-  C:090BH         PUBLIC        ?C?FCASTI
-  C:0906H         PUBLIC        ?C?FCASTL
+  C:09B0H         PUBLIC        ?C?FCASTC
+  C:09ABH         PUBLIC        ?C?FCASTI
+  C:09A6H         PUBLIC        ?C?FCASTL
   -------         ENDMOD        ?C?FCAST
 
   -------         MODULE        PRINTF
@@ -343,50 +348,46 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (FIND_DISTANCE)
   -------         ENDMOD        POW
 
   -------         MODULE        ?C?CHKFLOAT
-  C:098EH         PUBLIC        ?C?CHKFLOAT
+  C:0A2EH         PUBLIC        ?C?CHKFLOAT
   -------         ENDMOD        ?C?CHKFLOAT
 
   -------         MODULE        ?C?FPADD
-  C:09AFH         PUBLIC        ?C?FPADD
-  C:09ABH         PUBLIC        ?C?FPSUB
+  C:0A4FH         PUBLIC        ?C?FPADD
+  C:0A4BH         PUBLIC        ?C?FPSUB
   -------         ENDMOD        ?C?FPADD
 
   -------         MODULE        ?C?FPCMP
-  C:0AA2H         PUBLIC        ?C?FPCMP
-  C:0AA0H         PUBLIC        ?C?FPCMP3
+  C:0B42H         PUBLIC        ?C?FPCMP
+  C:0B40H         PUBLIC        ?C?FPCMP3
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:27:47  PAGE 7
+
+
   -------         ENDMOD        ?C?FPCMP
 
   -------         MODULE        ?C?FPNEG
-  C:0B19H         PUBLIC        ?C?FPNEG
+  C:0BB9H         PUBLIC        ?C?FPNEG
   -------         ENDMOD        ?C?FPNEG
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:11:21  PAGE 7
-
-
 
   -------         MODULE        ?C?CASTF
-  C:0B2AH         PUBLIC        ?C?CASTF
+  C:0BCAH         PUBLIC        ?C?CASTF
   -------         ENDMOD        ?C?CASTF
 
   -------         MODULE        ?C?FPROUND
-  C:0B61H         PUBLIC        ?C?FPROUND
+  C:0C01H         PUBLIC        ?C?FPROUND
   -------         ENDMOD        ?C?FPROUND
 
   -------         MODULE        ?C?FPCONVERT
-  C:0B90H         PUBLIC        ?C?FPCONVERT
+  C:0C30H         PUBLIC        ?C?FPCONVERT
   -------         ENDMOD        ?C?FPCONVERT
 
   -------         MODULE        EXP
-  C:159FH         PUBLIC        _EXP
+  C:1659H         PUBLIC        _EXP
   -------         ENDMOD        EXP
 
   -------         MODULE        LOG
   C:134FH         PUBLIC        _LOG
   C:134BH         PUBLIC        _LOG10
   -------         ENDMOD        LOG
-
-  -------         MODULE        ?C?FPDIV
-  C:0C96H         PUBLIC        ?C?FPDIV
-  -------         ENDMOD        ?C?FPDIV
 
   -------         MODULE        ?C?FTNPWR
   C:0D63H         PUBLIC        ?C?FTNPWR
@@ -418,22 +419,22 @@ SYMBOL TABLE OF MODULE:  .\Objects\GPS_test (FIND_DISTANCE)
 
   -------         MODULE        ?C?PLDIIDATA
   C:0E76H         PUBLIC        ?C?PLDIIDATA
+BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:27:47  PAGE 8
+
+
   -------         ENDMOD        ?C?PLDIIDATA
-BL51 BANKED LINKER/LOCATER V6.22.4.0                                                  05/21/2025  14:11:21  PAGE 8
-
-
 
   -------         MODULE        ?C?CCASE
   C:0E86H         PUBLIC        ?C?CCASE
   -------         ENDMOD        ?C?CCASE
 
   -------         MODULE        PUTCHAR
-  C:1719H         PUBLIC        _PUTCHAR
+  C:173DH         PUBLIC        _PUTCHAR
   -------         ENDMOD        PUTCHAR
 
 ******************************************************************************
-* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 0189H BYTE (19%) *
+* RESTRICTED VERSION WITH 0800H BYTE CODE SIZE LIMIT; USED: 01ADH BYTE (20%) *
 ******************************************************************************
 
-Program Size: data=56.1 xdata=0 code=4032
+Program Size: data=56.1 xdata=0 code=4068
 LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -57,7 +57,7 @@ while(1)
 		/* calculate distance using timer */
 		value = Clock_period * sound_velocity; 
 		distance_measurement = (TL0|(TH0<<8));										/* read timer register for time count */
-		// distance_measurement = (distance_measurement*value)/2.0;  /* find distance(in cm) */
+		distance_measurement = (distance_measurement*value)/2.0;  /* find distance(in cm) */
 	
 		sprintf(distance_in_cm, "%.2f", distance_measurement);
 		LCD_String_xy(2,1,distance_in_cm);												/* show distance on 16x2 LCD */
