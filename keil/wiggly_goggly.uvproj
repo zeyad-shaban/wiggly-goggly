@@ -377,14 +377,29 @@
           <GroupName>Source Group 1</GroupName>
           <Files>
             <File>
-              <FileName>STARTUP.A51</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\STARTUP.A51</FilePath>
+              <FileName>ultrasonic_logic.inc</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\ultrasonic_logic.inc</FilePath>
             </File>
             <File>
-              <FileName>main.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\main.c</FilePath>
+              <FileName>uart.inc</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\uart.inc</FilePath>
+            </File>
+            <File>
+              <FileName>main.asm</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\code\main.asm</FilePath>
+            </File>
+            <File>
+              <FileName>LCD.inc</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\LCD.inc</FilePath>
+            </File>
+            <File>
+              <FileName>delay.inc</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\delay.inc</FilePath>
             </File>
           </Files>
         </Group>

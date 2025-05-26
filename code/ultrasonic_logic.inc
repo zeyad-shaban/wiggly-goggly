@@ -20,14 +20,3 @@ WAIT_ECHO_LOW:
         JB   US_ECHO_R, WAIT_ECHO_LOW
         CLR  TF0
         CLR  TR0
-
-        ; -----------------------------
-        ; Print "Pulse: " and Timer0
-        ; -----------------------------
-        MOV DPTR, #MSG_PULSE
-        ACALL SEND_STRING
-        ACALL SEND_TIMER0_HEX
-        MOV A, #13
-        ACALL UART_SEND
-        MOV A, #10
-        ACALL UART_SEND

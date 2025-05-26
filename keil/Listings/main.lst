@@ -1,38 +1,475 @@
-C51 COMPILER V9.60.7.0   MAIN                                                              05/21/2025 11:32:21 PAGE 1   
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     1
 
 
-C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+MACRO ASSEMBLER A51 V8.2.7.0
 OBJECT MODULE PLACED IN .\Objects\main.obj
-COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
-                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+ASSEMBLER INVOKED BY: F:\Kiel\C51\BIN\A51.EXE ..\code\main.asm SET(SMALL) DEBUG PRINT(.\Listings\main.lst) OBJECT(.\Obje
+                      cts\main.obj) EP
 
-line level    source
+LOC  OBJ            LINE     SOURCE
 
-   1          #include <reg52.h>  /* 8051 SFR definitions for AT89C52, etc. */
-   2          
-   3          void main(void)
-   4          {
-   5   1          /* Set P1.0 = 1 (LED on),
-   6   1             leave all other bits on P1 unchanged or low as you prefer. */
-   7   1          P1 = (P1 & 0xFE) | 0x01;  
-   8   1      
-   9   1          /* Infinite loop to hold the state */
-  10   1          while (1)
-  11   1          {
-  12   2              /* nothing else to do */
-  13   2          }
-  14   1      }
+                       1     ;----------------------------------------------------------
+                       2     ; Project: Ultrasonic Echo Timer Measurement
+                       3     ; Clock  : 11.0592 MHz
+                       4     ; Output : LCD Screen and Led Display
+                       5     ;----------------------------------------------------------
+                       6     
+  0091                 7     US_TRIG_R   EQU  P1.1    ; Right Trigger pin
+  0090                 8     US_ECHO_R   EQU  P1.0    ; Right Echo pin
+                       9     
+  00A0                10     LED0 EQU P2.0; 10cm ; LEDS Output Display
+  00A1                11     LED1 EQU P2.1; 20cm
+  00A2                12     LED2 EQU P2.2; 30cm
+  00A3                13     LED3 EQU P2.3; 40cm
+  00A4                14     LED4 EQU P2.4; 50cm
+  00A5                15     LED5 EQU P2.5; 60cm
+  00A6                16     LED6 EQU P2.6; 70cm
+  00A7                17     LED7 EQU P2.7; >70cm
+                      18     
+  0093                19     LED_OUT EQU P1.3 ;Out of Range LED
+                      20     
+                      21     ;LCD Control Pins and Data Port
+  0095                22     LCD_RS      EQU  P1.5
+  0096                23     LCD_RW      EQU  P1.6
+  0097                24     LCD_EN      EQU  P1.7
+  00B0                25     LCD_DATA    EQU  P3
+                      26     
+                      27     ;$include (delay.inc);include the SUB_ROUTINES
+                +1    28     PUBLIC DELAY_10US
+                +1    29     PUBLIC DELAY_500US
+                +1    30     
+0000            +1    31     DELAY_10US:
+0000 00         +1    32         NOP
+0001 00         +1    33         NOP
+0002 00         +1    34         NOP
+0003 00         +1    35         NOP
+0004 00         +1    36         NOP
+0005 00         +1    37         NOP
+0006 00         +1    38         NOP
+0007 00         +1    39         NOP
+0008 00         +1    40         NOP
+0009 00         +1    41         NOP
+000A 22         +1    42         RET
+                +1    43     
+                +1    44     
+000B            +1    45     DELAY_500US:
+000B 7A05       +1    46         MOV R2, #5
+000D 7B28       +1    47         L1: MOV R3, #40
+000F 00         +1    48         L2: NOP
+0010 DBFD       +1    49         DJNZ R3, L2
+0012 DAF9       +1    50         DJNZ R2, L1
+0014 22         +1    51         RET
+                      52     ;$include (ultrasonic_logic.inc)
+                +1    53     PUBLIC WAIT_ECHO_HIGH
+                +1    54     PUBLIC WAIT_RISE
+                +1    55     PUBLIC WAIT_ECHO_LOW
+                +1    56     
+0015            +1    57     WAIT_ECHO_HIGH:
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     2
+
+0015 3090FD     +1    58         JNB   US_ECHO_R, WAIT_ECHO_HIGH
+0018 C28D       +1    59         CLR  TF0
+001A C28C       +1    60         CLR  TR0
+                +1    61     
+                +1    62         ; Start Timer0
+001C D28C       +1    63         SETB TR0
+                +1    64     
+                +1    65     
+001E            +1    66     WAIT_RISE:
+001E 209027     +1    67         JB   US_ECHO_R, GOT_ECHO
+0021 D8FB       +1    68         DJNZ  R0, WAIT_RISE
+0023 D9F9       +1    69         DJNZ  R1, WAIT_RISE
+                +1    70     
+0025            +1    71     WAIT_ECHO_LOW:
+0025 2090FD     +1    72             JB   US_ECHO_R, WAIT_ECHO_LOW
+0028 C28D       +1    73             CLR  TF0
+002A C28C       +1    74             CLR  TR0
+                      75     
+                      76     ;$include (LCD.inc)
+                +1    77     PUBLIC LCD_INIT
+                +1    78     PUBLIC LCD_SEND_STRING
+                +1    79     PUBLIC LCD_SEND_DECIMAL
+                +1    80     PUBLIC LCD_SEND_HEX
+                +1    81     
+                +1    82     
+                +1    83     ;=======================
+                +1    84     ; LCD SUB_ROUTINES
+                +1    85     ;=======================
+                +1    86     
+002C            +1    87     LCD_DELAY:
+002C 79FF       +1    88         MOV R1, #255
+002E 7AFF       +1    89     DL1: MOV R2, #255
+0030 DAFE       +1    90     DL2: DJNZ R2, DL2
+0032 D9FA       +1    91          DJNZ R1, DL1
+0034 22         +1    92          RET
+                +1    93     
+0035            +1    94     LCD_CMD: ; to send LCD commands 
+0035 C295       +1    95         CLR LCD_RS
+0037 C296       +1    96         CLR LCD_RW
+0039 D297       +1    97         SETB LCD_EN
+003B F5B0       +1    98         MOV LCD_DATA, A
+003D 112C       +1    99         ACALL LCD_DELAY
+003F C297       +1   100         CLR LCD_EN
+0041 22         +1   101         RET
+                +1   102     
+0042            +1   103     LCD_DATA_WRITE:
+0042 D295       +1   104         SETB LCD_RS
+0044 C296       +1   105         CLR LCD_RW
+0046 D297       +1   106         SETB LCD_EN
+0048 F5B0       +1   107         MOV LCD_DATA, A
+004A C297       +1   108         CLR LCD_EN
+004C 22         +1   109         RET
+                +1   110     
+004D            +1   111     LCD_INIT:
+004D 7438       +1   112         MOV A, #38H     ; 8-bit, 2-line
+004F 1135       +1   113         ACALL LCD_CMD
+0051 740E       +1   114         MOV A, #0EH     ; Display ON, Cursor ON
+0053 1135       +1   115         ACALL LCD_CMD
+0055 7401       +1   116         MOV A, #01H     ; Clear display
+0057 1135       +1   117         ACALL LCD_CMD
+0059 7406       +1   118         MOV A, #06H     ; Entry mode
+005B 1135       +1   119         ACALL LCD_CMD
+005D 22         +1   120         RET
+                +1   121     
+                +1   122     ; )NOTE: must move value you wish to print into register DPTR)
+005E            +1   123     LCD_SEND_STRING:
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     3
+
+005E E4         +1   124         CLR A
+005F 93         +1   125         MOVC A, @A+DPTR
+0060 6005       +1   126         JZ LCD_STRING_DONE
+0062 1142       +1   127         ACALL LCD_DATA_WRITE
+0064 A3         +1   128         INC DPTR
+0065 80F7       +1   129         SJMP LCD_SEND_STRING
+0067            +1   130     LCD_STRING_DONE:
+0067 22         +1   131         RET
+                +1   132     
+0068            +1   133     LCD_CLEAR:
+0068 7401       +1   134         MOV   A,#01h             ; Clear-Display command
+006A 1135       +1   135         ACALL LCD_CMD            ; sends it
+006C 112C       +1   136         ACALL LCD_DELAY          ; yields plenty of time (> 1.6 ms)
+006E 22         +1   137         RET
+                +1   138     
+                +1   139     ;----------------------------------------------------------
+                +1   140     ;  LCD_SEND_DECIMAL  – prints an 8-bit value in A (0-255)
+                +1   141     ; )NOTE: must move value you wish to print into register A)
+                +1   142     ;----------------------------------------------------------
+006F            +1   143     LCD_SEND_DECIMAL:
+006F 75F064     +1   144         MOV     B,#100          ; 1)  hundreds
+0072 84         +1   145         DIV     AB              ;    A = hundreds, B = 0-99 remainder
+0073 FC         +1   146         MOV     R4,A            ;    save hundreds
+0074 E5F0       +1   147         MOV     A,B             ; 2)  tens / ones
+0076 75F00A     +1   148         MOV     B,#10
+0079 84         +1   149         DIV     AB              ;    A = tens, B = ones
+007A FD         +1   150         MOV     R5,A
+007B AEF0       +1   151         MOV     R6,B
+                +1   152     
+                +1   153         ; -------- print hundreds if non-zero ---------------
+007D EC         +1   154         MOV     A,R4
+007E 6004       +1   155         JZ      SKIP_HUNDREDS
+0080 2430       +1   156         ADD     A,#'0'
+0082 1142       +1   157         ACALL   LCD_DATA_WRITE
+0084            +1   158     SKIP_HUNDREDS:
+                +1   159         ; -------- print tens (always if hundreds shown) ----
+0084 ED         +1   160         MOV     A,R5
+0085 6006       +1   161         JZ      SKIP_TENS
+0087 2430       +1   162         ADD     A,#'0'
+0089 1142       +1   163         ACALL   LCD_DATA_WRITE
+008B 8009       +1   164         SJMP    PRINT_ONES
+008D            +1   165     SKIP_TENS:
+                +1   166         ; if both hundreds and tens were zero, we still need one ‘0’
+008D EC         +1   167         MOV     A,R4
+008E 7006       +1   168         JNZ     PRINT_ONES      ; already printed a hundreds digit
+0090 7430       +1   169         MOV     A,#'0'          ; value was 0-9, so show a single 0
+0092 1142       +1   170         ACALL   LCD_DATA_WRITE
+0094 8005       +1   171         SJMP    DONE_DEC
+0096            +1   172     PRINT_ONES:
+0096 EE         +1   173         MOV     A,R6
+0097 2430       +1   174         ADD     A,#'0'
+0099 1142       +1   175         ACALL   LCD_DATA_WRITE
+009B            +1   176     DONE_DEC:
+009B 22         +1   177         RET
+                +1   178     
+009C            +1   179     LCD_SEND_HEX:      ;send values to R6 first
+009C F5F0       +1   180         MOV B, A
+009E C4         +1   181         SWAP A
+009F 540F       +1   182         ANL A, #0Fh
+00A1 11AE       +1   183         ACALL HEX_TO_ASCII
+00A3 1142       +1   184         ACALL LCD_DATA_WRITE
+                +1   185     
+00A5 E5F0       +1   186         MOV A, B
+00A7 540F       +1   187         ANL A, #0Fh
+00A9 11AE       +1   188         ACALL HEX_TO_ASCII
+00AB 1142       +1   189         ACALL LCD_DATA_WRITE
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     4
+
+00AD 22         +1   190         RET
+                +1   191     
+                +1   192     ;----------------------------------------------------------
+                +1   193     ;  HEX_TO_ASCII  – expects 0-15 in A, returns ‘0’…‘F’ in A (uses a ROM look-up 
+                             so it’s always right)
+                +1   194     ;----------------------------------------------------------
+00AE            +1   195     HEX_TO_ASCII:
+00AE C082       +1   196         PUSH    DPL             ; keep caller’s DPTR safe
+00B0 C083       +1   197         PUSH    DPH
+00B2 9000EE     +1   198         MOV     DPTR,#HEX_TAB   ; point to table
+00B5 93         +1   199         MOVC    A,@A+DPTR       ; fetch the correct character
+00B6 D083       +1   200         POP     DPH
+00B8 D082       +1   201         POP     DPL
+00BA 22         +1   202         RET
+                     203     
+                     204     
+0000                 205     ORG 0000h
+0000 020003          206     LJMP START 
+                     207     
+0003                 208     START:
+0003 758901          209         MOV TMOD, #01H      ;Timer0 Mode 1(16 bit) TL & TH
+0006 C28C            210         CLR TR0             ; Ensure Timer0 OFF
+                     211         
+0008 758A00          212         MOV TL0, #00h               ; Reset Timer0 for next round
+000B 758C00          213         MOV TH0, #00h
+                     214     
+000E C2A0            215         CLR LED0                    ; make sure all pins are ready
+0010 C2A1            216         CLR LED1
+0012 C2A2            217         CLR LED2
+0014 C2A3            218         CLR LED3
+0016 C2A4            219         CLR LED4
+0018 C2A5            220         CLR LED5
+001A C2A6            221         CLR LED6
+001C C2A7            222         CLR LED7
+001E C291            223         CLR US_TRIG_R
+0020 C290            224         CLR US_ECHO_R
+0022 C295            225         CLR LCD_RS      
+0024 C296            226         CLR LCD_RW      
+0026 C297            227         CLR LCD_EN      
+0028 75B000          228         MOV LCD_DATA,#00h
+                     229         
+002B 114D            230          ACALL LCD_INIT     ; Initialize LCD
+                     231     
+                     232         ;send start string
+002D 9000D2          233         MOV DPTR,#MSG_START
+0030 115E            234         ACALL LCD_SEND_STRING
+0032 110B            235         ACALL DELAY_500US
+0034 1168            236         ACALL LCD_CLEAR
+                     237     
+0036                 238     MAIN_TOGGLE:
+                     239         ; Send TRIG pulse
+0036 D291            240         SETB US_TRIG_R
+0038 1100            241         ACALL DELAY_10US
+003A C291            242         CLR  US_TRIG_R
+                     243     
+003C 1115            244     ACALL WAIT_ECHO_HIGH
+003E 111E            245     ACALL WAIT_RISE
+                     246     
+0040 C293            247     CLR LED_OUT
+                     248     
+0042                 249     NO_ECHO:
+0042 C28C            250         CLR TR0
+0044 D293            251         SETB LED_OUT
+0046 80EE            252         SJMP MAIN_TOGGLE
+                     253     
+0048                 254     GOT_ECHO:
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     5
+
+0048 1125            255         ACALL WAIT_ECHO_LOW
+                     256         ; Reset Timer0 for next round
+                     257         ; -----------------------------
+                     258         ; Print "Pulse: " and Timer0
+                     259         ; -----------------------------
+004A 9000CA          260         MOV DPTR, #MSG_PULSE
+004D 115E            261         ACALL LCD_SEND_STRING
+004F E58C            262         MOV A,TH0
+0051 119C            263         ACALL LCD_SEND_HEX
+0053 E58A            264         MOV A,TL0
+0055 119C            265         ACALL LCD_SEND_HEX
+                     266     
+                     267             ; Calculate pulse duration
+0057 E58A            268         MOV A, TL0       ; Store TL0 in R0
+0059 F8              269         MOV R0, A
+005A E58C            270         MOV A, TH0       ; Store TH0 in R1
+005C F9              271         MOV R1, A
+                     272     
+                     273         ; Use DPH:DPL = R1:R0 to load 16-bit value
+005D 8882            274         MOV DPL, R0
+005F 8983            275         MOV DPH, R1
+                     276     
+                     277         ; Approximate Distance = timer / 53
+                     278         ; Result will be in R7
+0061 7F00            279         MOV R7, #0        ; Distance result = 0
+                     280     
+0063                 281     DIV_LOOP:
+0063 C3              282         CLR C
+0064 E582            283         MOV A, DPL
+0066 9435            284         SUBB A, #53
+0068 F582            285         MOV DPL, A
+006A E583            286         MOV A, DPH
+006C 9400            287         SUBB A, #00
+006E F583            288         MOV DPH, A
+0070 4003            289         JC DIV_DONE       ; Stop if DPH:DPL < 53
+0072 0F              290         INC R7
+0073 80EE            291         SJMP DIV_LOOP
+                     292     
+0075                 293     DIV_DONE:
+                     294         ; ---- move cursor to start of line 2 ------------------
+0075 74C0            295         MOV  A,#0C0h              ; DDRAM addr 40 → line 2, col 0
+0077 1135            296         ACALL LCD_CMD
+                     297     
+                     298         ; Display Distance (in cm)
+0079 9000E3          299         MOV DPTR, #MSG_DISTANCE
+007C 115E            300         ACALL LCD_SEND_STRING
+007E EF              301         MOV A, R7
+007F 116F            302         ACALL LCD_SEND_DECIMAL
+                     303     
+                     304             ; ----- Clear all LEDs (P2.0 to P2.7) -----
+0081 75A000          305         MOV P2,#0h
+                     306     
+                     307         ; ----- Light LEDs based on distance in R2 -----
+0084 EF              308         MOV A, R7
+                     309     
+0085 B40A02          310         CJNE A, #10, CHECK_20
+0088 D2A0            311         SETB LED0
+                     312     
+008A                 313     CHECK_20:
+008A 4033            314         JC DONE_LEDS       ; A < 10
+008C D2A0            315         SETB LED0
+008E B41402          316         CJNE A, #20, CHECK_30
+0091 D2A1            317         SETB LED1
+                     318     
+0093                 319     CHECK_30:
+0093 402A            320         JC DONE_LEDS
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     6
+
+0095 D2A1            321         SETB LED1
+0097 B41E02          322         CJNE A, #30, CHECK_40
+009A D2A2            323         SETB LED2
+                     324     
+009C                 325     CHECK_40:
+009C 4021            326         JC DONE_LEDS
+009E D2A2            327         SETB LED2
+00A0 B42802          328         CJNE A, #40, CHECK_50
+00A3 D2A3            329         SETB LED3
+                     330     
+00A5                 331     CHECK_50:
+00A5 4018            332         JC DONE_LEDS
+00A7 D2A3            333         SETB LED3
+00A9 B43202          334         CJNE A, #50, CHECK_60
+00AC D2A4            335         SETB LED4
+                     336     
+00AE                 337     CHECK_60:
+00AE 400F            338         JC DONE_LEDS
+00B0 D2A4            339         SETB LED4
+00B2 B43C02          340         CJNE A, #60, CHECK_70
+00B5 D2A5            341         SETB LED5
+                     342     
+00B7                 343     CHECK_70:
+00B7 4006            344         JC DONE_LEDS
+00B9 D2A5            345         SETB LED5
+00BB D2A6            346         SETB LED6
+00BD D2A7            347         SETB LED7           ; Everything beyond 70 cm → all LEDs ON
+                     348     
+00BF                 349     DONE_LEDS:
+                     350     
+                     351         ; Reset Timer0 for next round
+00BF 758A00          352         MOV TL0, #00h
+00C2 758C00          353         MOV TH0, #00h
+                     354         
+00C5 1168            355         ACALL LCD_CLEAR
+00C7 020036          356         LJMP MAIN_TOGGLE
+                     357     ;---------------------Rom Message------------------------------------
+00CA 50756C73        358     MSG_PULSE: DB "Pulse: ", 0
+00CE 653A2000                
+00D2 50726F67        359     MSG_START: DB "Program Starting",0
+00D6 72616D20                
+00DA 53746172                
+00DE 74696E67                
+00E2 00                      
+00E3 44697374        360     MSG_DISTANCE: DB "Distance: ", 0
+00E7 616E6365                
+00EB 3A2000                  
+00EE 30313233        361     HEX_TAB: DB  "0123456789ABCDEF" ; 16-byte table
+00F2 34353637                
+00F6 38394142                
+00FA 43444546                
+                     362     END
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     7
+
+SYMBOL TABLE LISTING
+------ ----- -------
 
 
-MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =     10    ----
-   CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =   ----    ----
-   PDATA SIZE       =   ----    ----
-   DATA SIZE        =   ----    ----
-   IDATA SIZE       =   ----    ----
-   BIT SIZE         =   ----    ----
-END OF MODULE INFORMATION.
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+B. . . . . . . . .  D ADDR   00F0H   A   
+CHECK_20 . . . . .  C ADDR   008AH   A   
+CHECK_30 . . . . .  C ADDR   0093H   A   
+CHECK_40 . . . . .  C ADDR   009CH   A   
+CHECK_50 . . . . .  C ADDR   00A5H   A   
+CHECK_60 . . . . .  C ADDR   00AEH   A   
+CHECK_70 . . . . .  C ADDR   00B7H   A   
+DELAY_10US . . . .  C ADDR   0000H   A   
+DELAY_500US. . . .  C ADDR   000BH   A   
+DIV_DONE . . . . .  C ADDR   0075H   A   
+DIV_LOOP . . . . .  C ADDR   0063H   A   
+DL1. . . . . . . .  C ADDR   002EH   A   
+DL2. . . . . . . .  C ADDR   0030H   A   
+DONE_DEC . . . . .  C ADDR   009BH   A   
+DONE_LEDS. . . . .  C ADDR   00BFH   A   
+DPH. . . . . . . .  D ADDR   0083H   A   
+DPL. . . . . . . .  D ADDR   0082H   A   
+GOT_ECHO . . . . .  C ADDR   0048H   A   
+HEX_TAB. . . . . .  C ADDR   00EEH   A   
+HEX_TO_ASCII . . .  C ADDR   00AEH   A   
+L1 . . . . . . . .  C ADDR   000DH   A   
+L2 . . . . . . . .  C ADDR   000FH   A   
+LCD_CLEAR. . . . .  C ADDR   0068H   A   
+LCD_CMD. . . . . .  C ADDR   0035H   A   
+LCD_DATA . . . . .  D ADDR   00B0H   A   
+LCD_DATA_WRITE . .  C ADDR   0042H   A   
+LCD_DELAY. . . . .  C ADDR   002CH   A   
+LCD_EN . . . . . .  B ADDR   0090H.7 A   
+LCD_INIT . . . . .  C ADDR   004DH   A   
+LCD_RS . . . . . .  B ADDR   0090H.5 A   
+LCD_RW . . . . . .  B ADDR   0090H.6 A   
+LCD_SEND_DECIMAL .  C ADDR   006FH   A   
+LCD_SEND_HEX . . .  C ADDR   009CH   A   
+LCD_SEND_STRING. .  C ADDR   005EH   A   
+LCD_STRING_DONE. .  C ADDR   0067H   A   
+LED0 . . . . . . .  B ADDR   00A0H.0 A   
+LED1 . . . . . . .  B ADDR   00A0H.1 A   
+LED2 . . . . . . .  B ADDR   00A0H.2 A   
+LED3 . . . . . . .  B ADDR   00A0H.3 A   
+LED4 . . . . . . .  B ADDR   00A0H.4 A   
+LED5 . . . . . . .  B ADDR   00A0H.5 A   
+LED6 . . . . . . .  B ADDR   00A0H.6 A   
+LED7 . . . . . . .  B ADDR   00A0H.7 A   
+LED_OUT. . . . . .  B ADDR   0090H.3 A   
+MAIN_TOGGLE. . . .  C ADDR   0036H   A   
+MSG_DISTANCE . . .  C ADDR   00E3H   A   
+MSG_PULSE. . . . .  C ADDR   00CAH   A   
+MSG_START. . . . .  C ADDR   00D2H   A   
+NO_ECHO. . . . . .  C ADDR   0042H   A   
+P1 . . . . . . . .  D ADDR   0090H   A   
+P2 . . . . . . . .  D ADDR   00A0H   A   
+P3 . . . . . . . .  D ADDR   00B0H   A   
+PRINT_ONES . . . .  C ADDR   0096H   A   
+SKIP_HUNDREDS. . .  C ADDR   0084H   A   
+SKIP_TENS. . . . .  C ADDR   008DH   A   
+START. . . . . . .  C ADDR   0003H   A   
+TF0. . . . . . . .  B ADDR   0088H.5 A   
+TH0. . . . . . . .  D ADDR   008CH   A   
+TL0. . . . . . . .  D ADDR   008AH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     8
+
+TR0. . . . . . . .  B ADDR   0088H.4 A   
+US_ECHO_R. . . . .  B ADDR   0090H.0 A   
+US_TRIG_R. . . . .  B ADDR   0090H.1 A   
+WAIT_ECHO_HIGH . .  C ADDR   0015H   A   
+WAIT_ECHO_LOW. . .  C ADDR   0025H   A   
+WAIT_RISE. . . . .  C ADDR   001EH   A   
 
 
-C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)
