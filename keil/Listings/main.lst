@@ -1,4 +1,4 @@
-A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     1
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:40:57 PAGE     1
 
 
 MACRO ASSEMBLER A51 V8.2.7.0
@@ -65,7 +65,7 @@ LOC  OBJ            LINE     SOURCE
                 +1    55     PUBLIC WAIT_ECHO_LOW
                 +1    56     
 0015            +1    57     WAIT_ECHO_HIGH:
-A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     2
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:40:57 PAGE     2
 
 0015 3090FD     +1    58         JNB   US_ECHO_R, WAIT_ECHO_HIGH
 0018 C28D       +1    59         CLR  TF0
@@ -133,7 +133,7 @@ LOC  OBJ            LINE     SOURCE
                 +1   121     
                 +1   122     ; )NOTE: must move value you wish to print into register DPTR)
 005E            +1   123     LCD_SEND_STRING:
-A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     3
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:40:57 PAGE     3
 
 005E E4         +1   124         CLR A
 005F 93         +1   125         MOVC A, @A+DPTR
@@ -201,7 +201,7 @@ LOC  OBJ            LINE     SOURCE
 00A7 540F       +1   187         ANL A, #0Fh
 00A9 11AE       +1   188         ACALL HEX_TO_ASCII
 00AB 1142       +1   189         ACALL LCD_DATA_WRITE
-A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     4
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:40:57 PAGE     4
 
 00AD 22         +1   190         RET
                 +1   191     
@@ -269,7 +269,7 @@ LOC  OBJ            LINE     SOURCE
 0046 80EE            252         SJMP MAIN_TOGGLE
                      253     
 0048                 254     GOT_ECHO:
-A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     5
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:40:57 PAGE     5
 
 0048 1125            255         ACALL WAIT_ECHO_LOW
                      256         ; Reset Timer0 for next round
@@ -337,7 +337,7 @@ LOC  OBJ            LINE     SOURCE
                      318     
 0093                 319     CHECK_30:
 0093 402A            320         JC DONE_LEDS
-A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     6
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:40:57 PAGE     6
 
 0095 D2A1            321         SETB LED1
 0097 B41E02          322         CJNE A, #30, CHECK_40
@@ -391,7 +391,7 @@ LOC  OBJ            LINE     SOURCE
 00F6 38394142                
 00FA 43444546                
                      362     END
-A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     7
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:40:57 PAGE     7
 
 SYMBOL TABLE LISTING
 ------ ----- -------
@@ -459,7 +459,7 @@ TF0. . . . . . . .  B ADDR   0088H.5 A
 TH0. . . . . . . .  D ADDR   008CH   A   
 TL0. . . . . . . .  D ADDR   008AH   A   
 TMOD . . . . . . .  D ADDR   0089H   A   
-A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:29:56 PAGE     8
+A51 MACRO ASSEMBLER  MAIN                                                                 05/26/2025 11:40:57 PAGE     8
 
 TR0. . . . . . . .  B ADDR   0088H.4 A   
 US_ECHO_R. . . . .  B ADDR   0090H.0 A   
