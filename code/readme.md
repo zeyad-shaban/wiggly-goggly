@@ -13,12 +13,14 @@ Project documentation:
 Distance (cm) = echo (microSec) / 58 
 distance * 58 = echo
 
-RED < 10 (yellow) < 20 (green)
+# the outputs of the project
+1. LEDS 0-7 each representing 10cm of distance so led0 = 10cm led0+led1 = 20cm and so on
+2. LCD screen showing both pule width in hex the vlaues of both regitsers TL0 and TH0
+and also the theortical calculated distance in decimal goes up to 255 than over flows and starts over
 
+# cmd input for burning code using avrdude and ardiono
+Note: i have changed one line in the ardionoa as spi example code form choosing weither to put the reset pin as high or low depending on the microcontoller connected to always being high
 
-
-
-Regarind WAIT_FALL_16 philosophy:
-    each loop is 3 µs
-    aiming for 200 cm, 3 * x / 58 = 200
-    x = 200 * 58 / 3 = 3866
+"<file_directory of avrdude>" -C <File_Directory AVR8051.conf> -c stk500v1 -P COM5 -p 89s52 -b 19200 -U flash:w:"<File_Directory of HEX file>":a
+ex:
+"C:\Program Files (x86)\Arduino\hardware\tools\avr\bin\avrdude.exe" -C C:/AVR8051.conf -c stk500v1 -P COM5 -p 89s52 -b 19200 -U flash:w:"C:\LCD.HEX":a
