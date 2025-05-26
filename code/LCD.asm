@@ -2,9 +2,9 @@
 ; Testing LCD and creating its functions
 ;----------------------------------------------------------
 
-LCD_RS      EQU  P1.5
-LCD_RW      EQU  P1.6
-LCD_EN      EQU  P1.7
+LCD_RS      EQU  P1.2
+LCD_RW      EQU  P1.3
+LCD_EN      EQU  P1.4
 LCD_DATA    EQU  P3
 
 ORG 0000h
