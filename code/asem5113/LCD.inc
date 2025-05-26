@@ -1,9 +1,3 @@
-PUBLIC LCD_INIT
-PUBLIC LCD_SEND_STRING
-PUBLIC LCD_SEND_DECIMAL
-PUBLIC LCD_SEND_HEX
-
-
 ;=======================
 ; LCD SUB_ROUTINES
 ;=======================
