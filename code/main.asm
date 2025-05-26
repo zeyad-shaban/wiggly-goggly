@@ -25,7 +25,7 @@ LCD_EN      EQU  P1.7
 LCD_DATA    EQU  P3
 
 $INCLUDE (delay.inc);include the SUB_ROUTINES
-$INCLUDE (ultrasonic_logic.inc)
+$INCLUDE (uslogic.inc)
 $INCLUDE (LCD.inc)
 
 ORG 0000h
