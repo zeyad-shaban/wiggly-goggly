@@ -148,7 +148,17 @@ HEX_TO_ASCII:
     POP     DPL
     RET
 
-;----------------------------------------------------------
+; Delay ≈ 500 µs
+DELAY_500MS:
+    MOV R2, #100
+L3: MOV R3, #100
+L4: MOV R1, #7
+L5: NOP
+    DJNZ R1, L5
+    DJNZ R3, L4
+    DJNZ R2, L3
+    RET
+
 ; Delay ≈ 500 µs
 DELAY_500US:
     MOV R2, #5
@@ -337,7 +347,10 @@ DONE_LEDS:
     ; Reset Timer0 for next round
     MOV TL0, #00h
     MOV TH0, #00h
-    
+
+    ACALL DELAY_500MS
+    ACALL LCD_DELAY
+
     ACALL LCD_CLEAR
     LJMP MAIN_TOGGLE
 
