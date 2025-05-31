@@ -7,7 +7,9 @@
 
 US_TRIG_R   EQU  P1.1    ; Right Trigger pin
 US_ECHO_R   EQU  P1.0    ; Right Echo pin
-BUZZ EQU P2.0; Buzzer 
+BUZZ EQU P1.7; Buzzer 
+BASE_DELAY  EQU  10      ; Minimum delay (max frequency)
+
 VIBE EQU P2.1; Vibration motor
 LED0 EQU P2.2; 30cm
 LED1 EQU P2.3; 40cm
@@ -322,12 +324,32 @@ CHECK_100:
     SETB LED5
 
 CHECK_140:
-    JC DONE_LEDS
+    JC LCD_LOGIC
     SETB LED5
 
 DONE_LEDS:
+    ; --- Buzzer Control ---
+    CPL BUZZ               ; Toggle buzzer state
+    MOV A, R7             ; Get distance value
+    MOV R5, A             ; Store distance in R5 for delay calculation
+    
+    ; Check BUZZ bit state and set delay accordingly
+    JNB BUZZ, LONG_DELAY  ; If BUZZ is 0, use longer delay
+    MOV R4, #20            ; Short delay when BUZZ=1
+    SJMP BUZZ_DELAY
+LONG_DELAY:
+    MOV R4, #100         ; Long delay when BUZZ=0
 
-    ;Display pulse width
+BUZZ_DELAY:
+    MOV A, R4           ; Load delay count
+    MOV R3, A           ; Load delay count
+BUZZ_INNER_LOOP:
+    DJNZ R3, BUZZ_INNER_LOOP
+    DJNZ R5, BUZZ_DELAY  ; Repeat based on distance
+
+LCD_LOGIC:
+    SETB BUZZ
+    ; Continue with LCD display
     MOV DPTR, #MSG_PULSE
     ACALL LCD_SEND_STRING
     MOV A,TH0
@@ -353,6 +375,7 @@ DONE_LEDS:
 
     ACALL LCD_CLEAR
     LJMP MAIN_TOGGLE
+
 
 ;---------------------Rom Message------------------------------------
 MSG_PULSE: DB "P: ", 0
