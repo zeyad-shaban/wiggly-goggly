@@ -52,7 +52,7 @@ LCD_DATA_WRITE:
     CLR LCD_RW
     SETB LCD_EN
     MOV LCD_DATA, A
-    ACALL LCD_DELAY ;remove when offical code tetsing 
+    ;ACALL LCD_DELAY ;remove when offical code tetsing 
     CLR LCD_EN
     RET
 
@@ -349,7 +349,7 @@ DONE_LEDS:
     MOV TL0, #00h
     MOV TH0, #00h
 
-    ACALL DELAY_500MS
+    ;ACALL DELAY_500MS
 
     ACALL LCD_CLEAR
     LJMP MAIN_TOGGLE
