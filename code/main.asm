@@ -7,14 +7,14 @@
 
 US_TRIG_R   EQU  P1.1    ; Right Trigger pin
 US_ECHO_R   EQU  P1.0    ; Right Echo pin
-LED0 EQU P2.0; 10cm
-LED1 EQU P2.1; 20cm
-LED2 EQU P2.2; 30cm
-LED3 EQU P2.3; 40cm
-LED4 EQU P2.4; 50cm
-LED5 EQU P2.5; 60cm
-LED6 EQU P2.6; 70cm
-LED7 EQU P2.7; >70cm
+BUZZ EQU P2.0; Buzzer 
+VIBE EQU P2.1; Vibration motor
+LED0 EQU P2.2; 30cm
+LED1 EQU P2.3; 40cm
+LED2 EQU P2.4; 50cm
+LED3 EQU P2.5; 60cm
+LED4 EQU P2.6; 70cm
+LED5 EQU P2.7; >70cm
 
 LED_OUT EQU P1.3;out of range
 
@@ -52,6 +52,7 @@ LCD_DATA_WRITE:
     CLR LCD_RW
     SETB LCD_EN
     MOV LCD_DATA, A
+    ACALL LCD_DELAY ;remove when offical code tetsing 
     CLR LCD_EN
     RET
 
@@ -152,7 +153,7 @@ HEX_TO_ASCII:
 DELAY_500MS:
     MOV R2, #100
 L3: MOV R3, #100
-L4: MOV R1, #7
+L4: MOV R1, #14
 L5: NOP
     DJNZ R1, L5
     DJNZ R3, L4
@@ -198,11 +199,14 @@ START:
     CLR LED3
     CLR LED4
     CLR LED5
-    CLR LED6
-    CLR LED7
-    CLR US_TRIG_R
+
+    CLR BUZZ ;clear feedback outputs
+    CLR VIBE
+
+    CLR US_TRIG_R ;clear trig and echo for ultrasonic
     CLR US_ECHO_R
-    CLR LCD_RS      
+
+    CLR LCD_RS ;clear lcd controls and data port      
     CLR LCD_RW      
     CLR LCD_EN      
     CLR LCD_DATA   
@@ -250,17 +254,7 @@ WAIT_ECHO_LOW:
     CLR  TF0
     CLR  TR0
 
-    ; -----------------------------
-    ; Print "Pulse: " and Timer0
-    ; -----------------------------
-    MOV DPTR, #MSG_PULSE
-    ACALL LCD_SEND_STRING
-    MOV A,TH0
-    ACALL LCD_SEND_HEX
-    MOV A,TL0
-    ACALL LCD_SEND_HEX
-
-        ; Calculate pulse duration
+    ; Calculate pulse duration
     MOV A, TL0       ; Store TL0 in R0
     MOV R0, A
     MOV A, TH0       ; Store TH0 in R1
@@ -287,6 +281,60 @@ DIV_LOOP:
     SJMP DIV_LOOP
 
 DIV_DONE:
+    ; ----- Clear all LEDs (P2.0 to P2.7) -----
+    MOV P2,#0h
+
+    ; ----- Light LEDs based on distance in R2 -----
+    MOV A, R7
+
+    CJNE A, #20, CHECK_40
+    SETB LED0
+
+CHECK_40:
+    JC DONE_LEDS       ; A < 40
+    SETB LED0
+    CJNE A, #40, CHECK_60
+
+    SETB LED1
+
+CHECK_60:
+    JC DONE_LEDS
+    SETB LED1
+    CJNE A, #60, CHECK_75
+    SETB LED2
+
+CHECK_75:
+    JC DONE_LEDS
+    SETB LED2
+    CJNE A, #75, CHECK_90
+    SETB LED3
+
+CHECK_90:
+    JC DONE_LEDS
+    SETB LED3
+    CJNE A, #90, CHECK_100
+    SETB LED4
+
+CHECK_100:
+    JC DONE_LEDS
+    SETB LED4
+    CJNE A, #100, CHECK_140
+    SETB LED5
+
+CHECK_140:
+    JC DONE_LEDS
+    SETB LED5
+
+DONE_LEDS:
+
+    ;Display pulse width
+    MOV DPTR, #MSG_PULSE
+    ACALL LCD_SEND_STRING
+    MOV A,TH0
+    ACALL LCD_SEND_HEX
+    MOV A,TL0
+    ACALL LCD_SEND_HEX
+
     ; ---- move cursor to start of line 2 ------------------
     MOV  A,#0C0h              ; DDRAM addr 40 → line 2, col 0
     ACALL LCD_CMD
@@ -297,67 +345,19 @@ DIV_DONE:
     MOV A, R7
     ACALL LCD_SEND_DECIMAL
 
-        ; ----- Clear all LEDs (P2.0 to P2.7) -----
-    MOV P2,#0h
-
-    ; ----- Light LEDs based on distance in R2 -----
-    MOV A, R7
-
-    CJNE A, #10, CHECK_20
-    SETB LED0
-
-CHECK_20:
-    JC DONE_LEDS       ; A < 10
-    SETB LED0
-    CJNE A, #20, CHECK_30
-    SETB LED1
-
-CHECK_30:
-    JC DONE_LEDS
-    SETB LED1
-    CJNE A, #30, CHECK_40
-    SETB LED2
-
-CHECK_40:
-    JC DONE_LEDS
-    SETB LED2
-    CJNE A, #40, CHECK_50
-    SETB LED3
-
-CHECK_50:
-    JC DONE_LEDS
-    SETB LED3
-    CJNE A, #50, CHECK_60
-    SETB LED4
-
-CHECK_60:
-    JC DONE_LEDS
-    SETB LED4
-    CJNE A, #60, CHECK_70
-    SETB LED5
-
-CHECK_70:
-    JC DONE_LEDS
-    SETB LED5
-    SETB LED6
-    SETB LED7           ; Everything beyond 70 cm → all LEDs ON
-
-DONE_LEDS:
-
     ; Reset Timer0 for next round
     MOV TL0, #00h
     MOV TH0, #00h
 
     ACALL DELAY_500MS
-    ACALL LCD_DELAY
 
     ACALL LCD_CLEAR
     LJMP MAIN_TOGGLE
 
 ;---------------------Rom Message------------------------------------
-MSG_PULSE: DB "Pulse: ", 0
+MSG_PULSE: DB "P: ", 0
 MSG_START: DB "Program Starting",0
-MSG_DISTANCE: DB "Distance: ", 0
+MSG_DISTANCE: DB "D: ", 0
 HEX_TAB: DB  "0123456789ABCDEF" ; 16-byte table
 
 
